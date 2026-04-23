@@ -1,0 +1,2414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>LoanFlow — Sales Application &amp; Credit Underwriting</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #eef1f4;
+    color: #2c3e50;
+    font-size: 14px;
+    min-height: 100vh;
+  }
+
+  /* Top bar */
+  .topbar {
+    background: #2c3e50;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid #3498db;
+  }
+  .brand { font-size: 16px; font-weight: 600; }
+  .brand-sub { font-size: 11px; font-weight: 400; opacity: 0.75; margin-left: 8px; }
+  .journey-mode {
+    background: #3498db;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .user-info { font-size: 12px; display: flex; align-items: center; gap: 12px; }
+
+  /* Stage banner */
+  .stage-banner {
+    padding: 8px 20px;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .stage-sales { background: linear-gradient(90deg, #1e4d8b, #3498db); }
+  .stage-credit { background: linear-gradient(90deg, #8e44ad, #9b59b6); }
+  .stage-label { opacity: 0.9; }
+  .stage-owner { margin-left: auto; opacity: 0.85; font-weight: 500; text-transform: none; letter-spacing: 0; font-size: 11px; }
+
+  /* Step indicator */
+  .step-indicator {
+    background: white;
+    padding: 10px 20px;
+    border-bottom: 1px solid #dce1e5;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 12px;
+    flex-wrap: wrap;
+  }
+  .step-num {
+    background: #3498db;
+    color: white;
+    padding: 3px 10px;
+    border-radius: 3px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .step-num.credit { background: #8e44ad; }
+  .step-dots {
+    display: flex;
+    gap: 3px;
+    flex: 1;
+    min-width: 200px;
+  }
+  .dot {
+    height: 6px;
+    flex: 1;
+    background: #dce1e5;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .dot:hover { background: #b0bcc7; }
+  .dot.active { background: #3498db; }
+  .dot.active.credit { background: #8e44ad; }
+  .dot.completed { background: #27ae60; }
+  .dot.stage-sales { background: #a5c7e6; }
+  .dot.stage-sales.active { background: #3498db; }
+  .dot.stage-credit { background: #d4b8de; }
+  .dot.stage-credit.active { background: #8e44ad; }
+  .dot.stage-divider { flex: 0; width: 2px; background: #95a5a6; cursor: default; }
+  .step-name { color: #2c3e50; font-weight: 600; white-space: nowrap; }
+  .step-eta { font-size: 11px; color: #7f8c8d; white-space: nowrap; }
+
+  /* Layout */
+  .container {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 12px;
+    padding: 12px;
+    max-width: 1480px;
+    margin: 0 auto;
+  }
+
+  /* Form panel */
+  .form-panel {
+    background: white;
+    border: 1px solid #dce1e5;
+    border-radius: 4px;
+  }
+  .panel-header {
+    background: #f7f9fb;
+    padding: 10px 16px;
+    border-bottom: 1px solid #dce1e5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .panel-title { font-size: 13px; font-weight: 600; color: #2c3e50; }
+  .panel-meta { font-size: 11px; color: #7f8c8d; }
+  .panel-body { padding: 16px; min-height: 450px; }
+
+  .form-section { margin-bottom: 20px; }
+  .form-section:last-child { margin-bottom: 0; }
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: #3498db;
+    font-weight: 700;
+    margin-bottom: 10px;
+    padding-bottom: 4px;
+    border-bottom: 1px solid #ecf0f3;
+  }
+  .section-label.credit { color: #8e44ad; }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .form-grid.two-col { grid-template-columns: repeat(2, 1fr); }
+  .field-group { display: flex; flex-direction: column; }
+  .field-group.span-2 { grid-column: span 2; }
+  .field-group.span-3 { grid-column: span 3; }
+  label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #34495e;
+    margin-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 6px;
+  }
+  label .req { color: #e74c3c; }
+  label .status-ok { color: #27ae60; font-size: 10px; font-weight: 600; }
+  label .status-warn { color: #e67e22; font-size: 10px; font-weight: 600; }
+  label .status-alert { color: #e74c3c; font-size: 10px; font-weight: 600; }
+  label .auto-fill { background: #d1ecf1; color: #0c5460; font-size: 9px; padding: 1px 5px; border-radius: 2px; font-weight: 700; letter-spacing: 0.3px; }
+  input, select, textarea {
+    padding: 7px 10px;
+    border: 1px solid #bdc3c7;
+    border-radius: 3px;
+    font-size: 13px;
+    font-family: inherit;
+    background: white;
+    color: #2c3e50;
+    width: 100%;
+  }
+  textarea { resize: vertical; min-height: 60px; }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 2px rgba(52,152,219,0.15);
+  }
+  input[readonly] { background: #f7f9fb; color: #5a6b82; }
+  .hint { font-size: 10px; color: #95a5a6; margin-top: 3px; }
+
+  /* Upload block */
+  .file-upload {
+    border: 1px dashed #bdc3c7;
+    border-radius: 3px;
+    padding: 10px 12px;
+    text-align: center;
+    cursor: pointer;
+    background: #f7f9fb;
+    font-size: 12px;
+    color: #7f8c8d;
+  }
+  .file-upload:hover { border-color: #3498db; background: #ecf5fb; }
+  .file-upload strong { color: #3498db; }
+  .file-uploaded {
+    background: #e8f8ef;
+    border: 1px solid #a9dfbf;
+    color: #1d7a3e;
+    text-align: left;
+  }
+
+  /* Radio/checkbox cards */
+  .option-card {
+    border: 1px solid #dce1e5;
+    border-radius: 3px;
+    padding: 10px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    transition: all 0.15s;
+  }
+  .option-card:hover { border-color: #3498db; background: #f7fbfd; }
+  .option-card.selected { border-color: #3498db; background: #ecf5fb; }
+  .option-card input { width: auto; margin-top: 2px; flex-shrink: 0; }
+  .option-card .opt-label { font-weight: 600; }
+  .option-card .opt-desc { color: #7f8c8d; font-size: 11px; margin-top: 2px; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    border-bottom: 2px solid #dce1e5;
+    margin-bottom: 16px;
+  }
+  .tab {
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 600;
+    color: #7f8c8d;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+  }
+  .tab.active { color: #3498db; border-bottom-color: #3498db; }
+  .tab.credit.active { color: #8e44ad; border-bottom-color: #8e44ad; }
+
+  /* Panel footer */
+  .panel-footer {
+    background: #f7f9fb;
+    padding: 10px 16px;
+    border-top: 1px solid #dce1e5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .btn {
+    padding: 6px 16px;
+    border: 1px solid transparent;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: #3498db; color: white; border-color: #2980b9; }
+  .btn-primary:hover:not(:disabled) { background: #2980b9; }
+  .btn-primary.credit { background: #8e44ad; border-color: #732d91; }
+  .btn-primary.credit:hover:not(:disabled) { background: #732d91; }
+  .btn-success { background: #27ae60; color: white; border-color: #1e8449; }
+  .btn-success:hover { background: #1e8449; }
+  .btn-danger { background: #e74c3c; color: white; border-color: #c0392b; }
+  .btn-warn { background: #f39c12; color: white; border-color: #d68910; }
+  .btn-secondary { background: white; color: #7f8c8d; border-color: #bdc3c7; }
+  .btn-secondary:hover { background: #f7f9fb; color: #2c3e50; }
+  .btn-group { display: flex; gap: 8px; }
+
+  /* AI Agent Panel */
+  .agent-panel {
+    background: white;
+    border: 1px solid #dce1e5;
+    border-radius: 4px;
+    align-self: start;
+    position: sticky;
+    top: 12px;
+  }
+  .agent-header {
+    background: #2c3e50;
+    color: white;
+    padding: 10px 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 4px 4px 0 0;
+  }
+  .agent-title { font-size: 12px; font-weight: 600; }
+  .live-badge {
+    background: #27ae60;
+    color: white;
+    font-size: 9px;
+    font-weight: 700;
+    padding: 2px 7px;
+    border-radius: 2px;
+    letter-spacing: 0.5px;
+    display: flex; align-items: center; gap: 4px;
+  }
+  .live-badge::before {
+    content: '';
+    width: 5px; height: 5px;
+    background: white;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+  .agent-config {
+    background: #ecf0f3;
+    padding: 8px 14px;
+    font-size: 11px;
+    color: #7f8c8d;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-bottom: 1px solid #dce1e5;
+  }
+  .agent-config input { width: auto; margin: 0; transform: scale(0.9); }
+  .agent-count { margin-left: auto; }
+
+  .agent-body { max-height: 600px; overflow-y: auto; }
+  .agent-event {
+    padding: 10px 14px;
+    border-bottom: 1px solid #ecf0f3;
+    font-size: 12px;
+  }
+  .agent-event:last-child { border-bottom: none; }
+  .event-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 3px;
+    gap: 6px;
+  }
+  .event-action { font-weight: 600; color: #2c3e50; font-size: 12px; }
+  .event-time { font-size: 10px; color: #95a5a6; white-space: nowrap; }
+  .event-detail { color: #7f8c8d; font-size: 11px; margin: 3px 0; line-height: 1.4; }
+  .event-status {
+    display: inline-block;
+    font-size: 9px;
+    padding: 1px 6px;
+    border-radius: 2px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+  }
+  .status-done { background: #d4edda; color: #155724; }
+  .status-pending { background: #fff3cd; color: #856404; }
+  .status-alert { background: #f8d7da; color: #721c24; }
+  .status-info { background: #d1ecf1; color: #0c5460; }
+
+  /* Banners */
+  .info-banner {
+    background: #ecf5fb;
+    border-left: 3px solid #3498db;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #2c3e50;
+    margin-bottom: 16px;
+    border-radius: 0 3px 3px 0;
+  }
+  .info-banner strong { color: #2980b9; }
+  .success-banner {
+    background: #e8f8ef;
+    border-left: 3px solid #27ae60;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #1d7a3e;
+    margin-bottom: 16px;
+    border-radius: 0 3px 3px 0;
+  }
+  .success-banner strong { color: #1e8449; }
+  .warn-banner {
+    background: #fef9e7;
+    border-left: 3px solid #f39c12;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #7d5a00;
+    margin-bottom: 16px;
+    border-radius: 0 3px 3px 0;
+  }
+  .danger-banner {
+    background: #fdeeed;
+    border-left: 3px solid #e74c3c;
+    padding: 10px 14px;
+    font-size: 12px;
+    color: #78201a;
+    margin-bottom: 16px;
+    border-radius: 0 3px 3px 0;
+  }
+
+  /* Summary list */
+  .summary-list {
+    background: #f7f9fb;
+    border: 1px solid #dce1e5;
+    border-radius: 3px;
+    padding: 12px 16px;
+    margin-bottom: 16px;
+  }
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px solid #ecf0f3;
+    font-size: 12px;
+    gap: 12px;
+  }
+  .summary-row:last-child { border-bottom: none; }
+  .summary-row .k { color: #7f8c8d; }
+  .summary-row .v { color: #2c3e50; font-weight: 600; text-align: right; }
+
+  /* Loading check */
+  .loading-check {
+    background: #fafbfc;
+    border: 1px solid #ecf0f3;
+    border-radius: 3px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .loading-check .check-icon {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+  }
+  .check-done .check-icon { background: #27ae60; color: white; }
+  .check-doing .check-icon { background: #f39c12; color: white; animation: spin 1s linear infinite; }
+  .check-pending .check-icon { background: #dce1e5; color: #7f8c8d; }
+  .check-alert .check-icon { background: #e74c3c; color: white; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .check-label { flex: 1; color: #2c3e50; font-weight: 500; }
+  .check-status { font-size: 10px; color: #7f8c8d; }
+
+  /* Participant list */
+  .participant-card {
+    background: #f7f9fb;
+    border: 1px solid #dce1e5;
+    border-radius: 4px;
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+  .participant-card .p-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .participant-card .p-name { font-weight: 600; font-size: 13px; color: #2c3e50; }
+  .participant-card .p-type {
+    background: #3498db;
+    color: white;
+    font-size: 10px;
+    padding: 2px 7px;
+    border-radius: 2px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .participant-card .p-type.guarantor { background: #e67e22; }
+  .participant-card .p-type.coapp-nf { background: #95a5a6; }
+  .participant-card .p-details {
+    font-size: 11px;
+    color: #7f8c8d;
+    line-height: 1.5;
+  }
+  .participant-card .p-actions {
+    display: flex;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .participant-card .p-actions button {
+    background: none;
+    border: 1px solid #dce1e5;
+    padding: 3px 8px;
+    border-radius: 2px;
+    font-size: 10px;
+    cursor: pointer;
+    color: #7f8c8d;
+  }
+  .participant-card .p-actions button:hover { border-color: #3498db; color: #3498db; }
+
+  /* Dedupe result */
+  .dedupe-result {
+    padding: 12px;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+  .dedupe-clean { background: #e8f8ef; border: 1px solid #a9dfbf; color: #1d7a3e; }
+  .dedupe-found { background: #fef9e7; border: 1px solid #f5cba7; color: #7d5a00; }
+  .dedupe-alert { background: #fdeeed; border: 1px solid #f1948a; color: #78201a; }
+  .dedupe-icon { font-size: 18px; }
+  .dedupe-content { flex: 1; }
+  .dedupe-label { font-weight: 600; }
+  .dedupe-detail { font-size: 11px; margin-top: 2px; }
+
+  /* Split consent view */
+  .split-view {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  .split-view .so-view {
+    border: 1px solid #dce1e5;
+    border-radius: 4px;
+    padding: 14px;
+  }
+  .split-view .phone-view {
+    background: #1a1a2e;
+    border-radius: 24px;
+    padding: 20px 16px;
+    margin: 0 auto;
+    max-width: 280px;
+    position: relative;
+  }
+  .split-view .phone-view::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 4px;
+    background: #333;
+    border-radius: 2px;
+  }
+  .phone-screen {
+    background: white;
+    border-radius: 12px;
+    padding: 20px 16px;
+    margin-top: 12px;
+    min-height: 400px;
+    color: #2c3e50;
+  }
+  .phone-screen .phone-logo {
+    text-align: center;
+    margin-bottom: 16px;
+    color: #3498db;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  .phone-screen h3 { font-size: 15px; margin-bottom: 8px; color: #2c3e50; }
+  .phone-screen p { font-size: 12px; color: #7f8c8d; margin-bottom: 12px; line-height: 1.5; }
+  .phone-screen .phone-field {
+    margin-bottom: 10px;
+  }
+  .phone-screen .phone-field label { font-size: 10px; color: #34495e; margin-bottom: 3px; }
+  .phone-screen .phone-field input {
+    padding: 8px 10px;
+    font-size: 13px;
+    border: 1px solid #dce1e5;
+    border-radius: 4px;
+  }
+  .phone-screen .phone-btn {
+    background: #3498db;
+    color: white;
+    width: 100%;
+    padding: 10px;
+    border-radius: 4px;
+    border: none;
+    font-weight: 600;
+    font-size: 13px;
+    margin-top: 8px;
+    cursor: pointer;
+  }
+  .phone-check {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 6px 0;
+    font-size: 11px;
+  }
+  .phone-check input { width: auto; margin-top: 2px; }
+  .status-pill {
+    display: inline-block;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .status-sent { background: #fef9e7; color: #7d5a00; }
+  .status-received { background: #e8f8ef; color: #1d7a3e; }
+
+  /* Bureau score card */
+  .bureau-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .bureau-card {
+    border: 1px solid #dce1e5;
+    border-radius: 4px;
+    padding: 14px;
+    text-align: center;
+    background: white;
+  }
+  .bureau-name { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; margin-bottom: 4px; }
+  .bureau-score { font-size: 28px; font-weight: 700; color: #27ae60; line-height: 1; margin-bottom: 4px; }
+  .bureau-score.warn { color: #f39c12; }
+  .bureau-score.low { color: #e74c3c; }
+  .bureau-grade { font-size: 10px; color: #7f8c8d; }
+
+  /* BRE decision tile */
+  .decision-tile {
+    background: linear-gradient(135deg, #27ae60, #2ecc71);
+    color: white;
+    border-radius: 6px;
+    padding: 20px;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+  .decision-tile.refer { background: linear-gradient(135deg, #f39c12, #e67e22); }
+  .decision-tile.reject { background: linear-gradient(135deg, #e74c3c, #c0392b); }
+  .decision-label { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.85; }
+  .decision-outcome { font-size: 24px; font-weight: 700; margin: 6px 0; }
+  .decision-reason { font-size: 12px; opacity: 0.9; }
+
+  /* Rules engine */
+  .rule-row {
+    display: flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-bottom: 1px solid #ecf0f3;
+    font-size: 12px;
+    gap: 10px;
+  }
+  .rule-row:last-child { border-bottom: none; }
+  .rule-icon { width: 16px; text-align: center; flex-shrink: 0; }
+  .rule-pass { color: #27ae60; }
+  .rule-fail { color: #e74c3c; }
+  .rule-warn { color: #f39c12; }
+  .rule-name { flex: 1; color: #2c3e50; }
+  .rule-value { color: #7f8c8d; font-size: 11px; }
+
+  /* CAM panel */
+  .cam-panel {
+    background: #fbfaff;
+    border: 1px solid #d6c9e0;
+    border-radius: 4px;
+    padding: 14px;
+    margin-bottom: 16px;
+  }
+  .cam-panel h4 {
+    color: #8e44ad;
+    font-size: 12px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  /* Approval chain */
+  .approval-chain {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background: #f7f9fb;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+  }
+  .approver-node {
+    background: white;
+    border: 2px solid #dce1e5;
+    border-radius: 6px;
+    padding: 8px 12px;
+    text-align: center;
+    min-width: 110px;
+    flex-shrink: 0;
+  }
+  .approver-node.current { border-color: #8e44ad; background: #faf5fc; }
+  .approver-node.approved { border-color: #27ae60; background: #e8f8ef; }
+  .approver-node.pending { opacity: 0.5; }
+  .approver-role { font-size: 10px; color: #7f8c8d; font-weight: 600; text-transform: uppercase; }
+  .approver-name { font-size: 12px; font-weight: 600; color: #2c3e50; margin: 3px 0 1px; }
+  .approver-status { font-size: 10px; }
+  .approver-status.approved { color: #27ae60; }
+  .approver-status.current { color: #8e44ad; font-weight: 600; }
+  .approver-status.pending { color: #7f8c8d; }
+  .approval-arrow { color: #95a5a6; font-size: 18px; }
+
+  /* Outcome toggle (step 14) */
+  .outcome-toggle {
+    display: flex;
+    background: #f7f9fb;
+    border: 1px solid #dce1e5;
+    border-radius: 4px;
+    padding: 3px;
+    margin-bottom: 16px;
+  }
+  .outcome-btn {
+    flex: 1;
+    padding: 7px 10px;
+    background: transparent;
+    border: none;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 600;
+    color: #7f8c8d;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .outcome-btn.active { background: white; color: #8e44ad; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+  .outcome-btn.active.reject { color: #e74c3c; }
+  .outcome-btn.active.approve { color: #27ae60; }
+  .outcome-btn.active.conditional { color: #f39c12; }
+
+  /* Conditions list */
+  .condition-row {
+    background: #fef9e7;
+    border: 1px solid #f5cba7;
+    border-radius: 3px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .condition-num {
+    background: #f39c12;
+    color: white;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .condition-text { flex: 1; font-size: 12px; color: #2c3e50; }
+  .condition-meta { font-size: 10px; color: #7f8c8d; margin-top: 3px; }
+
+  /* Offer cards */
+  .offer-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .offer-card {
+    border: 2px solid #dce1e5;
+    border-radius: 6px;
+    padding: 14px;
+    cursor: pointer;
+  }
+  .offer-card.selected { border-color: #8e44ad; background: #faf5fc; }
+  .offer-tenure { font-size: 10px; color: #7f8c8d; text-transform: uppercase; letter-spacing: 0.5px; }
+  .offer-emi { font-size: 20px; font-weight: 700; color: #2c3e50; margin: 4px 0 2px; }
+  .offer-emi-sub { font-size: 10px; color: #7f8c8d; }
+  .offer-details { margin-top: 8px; padding-top: 8px; border-top: 1px solid #ecf0f3; font-size: 11px; }
+  .offer-row { display: flex; justify-content: space-between; padding: 2px 0; }
+  .offer-row .k { color: #7f8c8d; }
+  .offer-row .v { color: #2c3e50; font-weight: 600; }
+  .offer-recommended {
+    background: #8e44ad;
+    color: white;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-weight: 700;
+    margin-left: 4px;
+  }
+
+  /* Responsive */
+  @media (max-width: 900px) {
+    .container { grid-template-columns: 1fr; }
+    .agent-panel { position: static; }
+    .form-grid, .form-grid.two-col, .offer-grid, .bureau-grid, .split-view { grid-template-columns: 1fr; }
+    .field-group.span-2, .field-group.span-3 { grid-column: span 1; }
+    .step-indicator { padding: 8px 12px; gap: 8px; }
+    .step-dots { order: 10; min-width: 100%; }
+    .bureau-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  /* ========== Multi-Agent Sidebar ========== */
+  .agent-card {
+    border-bottom: 1px solid #ecf0f3;
+    transition: background 0.15s;
+  }
+  .agent-card:last-child { border-bottom: none; }
+  .agent-card-header {
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .agent-card-header:hover { background: #fafbfc; }
+  .agent-chip {
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+    color: white;
+  }
+  .chip-kyc { background: #3498db; }
+  .chip-compliance { background: #e74c3c; }
+  .chip-consent { background: #16a085; }
+  .chip-enrichment { background: #f39c12; }
+  .chip-financial { background: #9b59b6; }
+  .chip-credit { background: #2c3e50; }
+  .chip-cam { background: #8e44ad; }
+
+  .agent-name {
+    flex: 1;
+    font-weight: 600;
+    font-size: 12px;
+    color: #2c3e50;
+  }
+  .agent-name-sub {
+    font-size: 10px;
+    color: #7f8c8d;
+    font-weight: 400;
+    margin-top: 1px;
+  }
+  .agent-status-badge {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    flex-shrink: 0;
+  }
+  .agent-active {
+    background: #27ae60;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .agent-active::before {
+    content: '';
+    width: 5px; height: 5px;
+    background: white;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+  }
+  .agent-idle { background: #ecf0f3; color: #95a5a6; }
+  .agent-complete { background: #d4edda; color: #155724; }
+
+  .agent-count-pill {
+    background: #ecf0f3;
+    color: #7f8c8d;
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+  .agent-caret {
+    font-size: 10px;
+    color: #95a5a6;
+    transition: transform 0.15s;
+    flex-shrink: 0;
+  }
+  .agent-card.expanded .agent-caret { transform: rotate(90deg); }
+
+  .agent-card-body {
+    display: none;
+    padding: 4px 14px 10px 52px;
+    background: #fafbfc;
+  }
+  .agent-card.expanded .agent-card-body { display: block; }
+
+  .agent-card-body .agent-event {
+    padding: 8px 0;
+    border-bottom: 1px solid #ecf0f3;
+    font-size: 11px;
+  }
+  .agent-card-body .agent-event:last-child { border-bottom: none; }
+  .agent-card-body .event-action { font-weight: 600; color: #2c3e50; font-size: 11px; }
+  .agent-card-body .event-time { font-size: 10px; color: #95a5a6; }
+  .agent-card-body .event-detail { color: #7f8c8d; font-size: 10px; margin: 2px 0; line-height: 1.4; }
+  .agent-card-body .event-status {
+    font-size: 9px; padding: 1px 5px; border-radius: 2px; font-weight: 700; letter-spacing: 0.3px;
+  }
+
+  .agent-empty {
+    padding: 6px 0;
+    font-size: 10px;
+    color: #95a5a6;
+    font-style: italic;
+  }
+
+  /* Agent summary header */
+  .agents-summary {
+    padding: 8px 14px;
+    font-size: 10px;
+    color: #7f8c8d;
+    background: #ecf0f3;
+    border-bottom: 1px solid #dce1e5;
+    display: flex;
+    justify-content: space-between;
+  }
+  .agents-summary .sum-active { color: #27ae60; font-weight: 600; }
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <span class="brand">LoanFlow</span>
+    <span class="brand-sub">Unsecured Business Term Loan — Origination</span>
+  </div>
+  <div class="user-info">
+    <span class="journey-mode">Assisted Journey</span>
+    <span id="userLabel">Ravi Kumar · MUM-BR-04</span>
+  </div>
+</div>
+
+<div class="stage-banner" id="stageBanner">
+  <span>STAGE: SALES APPLICATION CAPTURE</span>
+  <span class="stage-owner" id="stageOwner">Owner: Sales Team · Sales Officer</span>
+</div>
+
+<div class="step-indicator">
+  <span class="step-num" id="stepNum">Step 1 of 15</span>
+  <span class="step-name" id="stepName">Basic Intake</span>
+  <div class="step-dots" id="stepDots"></div>
+  <span class="step-eta" id="stepEta">~2 min to complete</span>
+</div>
+
+<div class="container">
+
+  <div class="form-panel">
+    <div class="panel-header">
+      <div class="panel-title" id="panelTitle">📋 Basic Intake — Applicant Snapshot</div>
+      <div class="panel-meta" id="panelMeta">Auto-saved · just now</div>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+    <div class="panel-footer">
+      <button class="btn btn-secondary" onclick="saveExit()">← Save &amp; Exit</button>
+      <div class="btn-group">
+        <button class="btn btn-secondary" id="prevBtn" onclick="prevStep()">← Previous</button>
+        <button class="btn btn-primary" id="nextBtn" onclick="nextStep()">Continue → Step 2</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="agent-panel">
+    <div class="agent-header">
+      <div class="agent-title">🤖 AI Agent Orchestra</div>
+      <div class="live-badge">LIVE</div>
+    </div>
+    <div class="agents-summary" id="agentsSummary">
+      <span>7 specialized agents</span>
+      <span class="sum-active" id="agentsActiveCount">— active</span>
+    </div>
+    <div class="agent-body" id="agentBody" style="max-height:700px"></div>
+  </div>
+
+</div>
+
+<script>
+// ============================================
+// AGENT DEFINITIONS
+// ============================================
+
+const AGENTS = [
+  { id: 'financial', icon: '💰', chipClass: 'chip-financial', name: 'Financial Analysis Agent', tagline: 'Cashflow &amp; FOIR analyst',
+    matchers: ['ITR', 'FOIR', 'P&amp;L', 'P&L', 'Cashflow', 'Bank Health', 'AA Consent', 'Data Fetched', 'B2B Pattern', 'GP margin', 'GST vs Declared', 'Pennydrop', 'IFSC', 'AA Retrieved'] },
+  { id: 'credit', icon: '📊', chipClass: 'chip-credit', name: 'Credit Decision Agent', tagline: 'Bureau pull, BRE &amp; risk grading',
+    matchers: ['CIBIL', 'Experian', 'CRIF', 'Equifax', 'Bureau', 'BRE', 'Rule Batch', 'Risk Grade', 'Routing Decision', 'Enquiry Velocity', 'Max Eligible', 'Policy Rule', 'Guarantor Check', 'Priya ·'] },
+  { id: 'cam', icon: '📄', chipClass: 'chip-cam', name: 'CAM &amp; Approval Agent', tagline: 'CAM, DAM routing &amp; SLA',
+    matchers: ['CAM', 'Analyst', 'Anjali', 'Queued to', 'Flag 1', 'Flag 2', 'Recommendation', 'Routing to Approver', 'DAM', 'BCM', 'Vikram', 'Ledger Review', 'Mitigant', 'Decision Recorded', 'Sanction', 'Offer', 'Conditions Listed', 'SO Presenting', 'Approver'] },
+  { id: 'consent', icon: '✍️', chipClass: 'chip-consent', name: 'Consent &amp; Legal Agent', tagline: 'DPDP &amp; audit trail custodian',
+    matchers: ['Consent Link', 'Consent Request', 'Consent Submitted', 'Consent Approved', 'OTP Dispatch', 'SMS Dispatch', 'Email Dispatch', 'Link Opened', 'Audit Trail', 'Sealed', 'Delivery Confirmation', 'Presence Confirmation', 'Session', 'OTP Verification (borrower', 'Link Generated', 'Cooling', 'Appeal', 'Applicant Notification'] },
+  { id: 'compliance', icon: '🛡️', chipClass: 'chip-compliance', name: 'Compliance &amp; Fraud Agent', tagline: 'Risk watchdog — lists &amp; screening',
+    matchers: ['Dedupe', 'Fraud Pattern', 'Fraud List', 'Fraud DB', 'Sanctions', 'Defaulter', 'Wilful', 'PEP', 'CFCA', 'Adverse Media', 'WIP', 'AML', 'OFAC', 'Watchlist', 'Rejection List', 'Internal Fraud'] },
+  { id: 'enrichment', icon: '🏢', chipClass: 'chip-enrichment', name: 'Data Enrichment Agent',  tagline: 'Third-party data fetcher',
+    matchers: ['PIN Lookup', 'PIN Validation', 'Geography Check', 'GSTIN', 'GST Turnover', 'GST Certificate', 'GST Filing', 'Udyam', 'MCA', 'Address Auto-fill', 'Utility Bill', 'Shop Act', 'Aadhaar Address Match'] },
+  { id: 'kyc', icon: '🧍', chipClass: 'chip-kyc', name: 'KYC Agent', tagline: 'Identity verification specialist',
+    matchers: ['PAN', 'NSDL', 'Aadhaar', 'UIDAI', 'eKYC', 'Liveness', 'Face Match', 'Tri-source', 'Name Match', 'Selfie', 'OCR Processing', 'PAN Image', 'PAN Format', 'Mobile Number Check', 'Age Check', 'Delivery Confirmation'] }
+];
+
+function classifyEventToAgent(action) {
+  // Match event action text against each agent's keywords
+  for (const agent of AGENTS) {
+    for (const kw of agent.matchers) {
+      if (action.toLowerCase().includes(kw.toLowerCase().replace(/&amp;/g, '&'))) {
+        return agent.id;
+      }
+    }
+  }
+  // Fallback agent by stage
+  return 'kyc';
+}
+
+// ============================================
+// STEP DEFINITIONS
+// ============================================
+
+const SALES = 'sales';
+const CREDIT = 'credit';
+
+const steps = [
+
+  // ============ STAGE: SALES APPLICATION CAPTURE ============
+
+  { num: 1, stage: SALES, name: 'Basic Intake', title: '📋 Basic Intake — Applicant Snapshot', eta: '~2 min', owner: 'Sales Officer',
+    body: `
+      <div class="info-banner">
+        <strong>Speed tip:</strong> This is a lightweight intake. Only capture what's needed to proceed. Rich data comes later via OCR and auto-fill.
+      </div>
+      <div class="form-section">
+        <div class="section-label">A · Applicant Basics</div>
+        <div class="form-grid">
+          <div class="field-group span-2">
+            <label>Full Name <span class="req">*</span></label>
+            <input type="text" value="Rahul Sharma" />
+            <div class="hint">Name will be auto-verified against PAN in next step</div>
+          </div>
+          <div class="field-group">
+            <label>Mobile <span class="req">*</span> <span class="status-ok">✓ valid</span></label>
+            <input type="tel" value="9999900000" maxlength="10" />
+          </div>
+          <div class="field-group">
+            <label>PAN <span class="req">*</span> <span class="status-ok">✓ format ok</span></label>
+            <input type="text" value="ABCPE1234F" maxlength="10" style="text-transform:uppercase" />
+          </div>
+          <div class="field-group">
+            <label>Date of Birth <span class="req">*</span></label>
+            <input type="date" value="1985-06-15" />
+          </div>
+          <div class="field-group">
+            <label>PIN Code <span class="req">*</span> <span class="status-ok">✓ Mumbai</span></label>
+            <input type="text" value="400001" maxlength="6" />
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">B · Loan Intent</div>
+        <div class="form-grid">
+          <div class="field-group">
+            <label>Applicant Type <span class="req">*</span></label>
+            <select><option>Individual</option><option>Business Entity</option></select>
+          </div>
+          <div class="field-group">
+            <label>Customer Profile <span class="req">*</span></label>
+            <select>
+              <option>SEP — Self-Employed Professional</option>
+              <option>SENP — Self-Employed Non-Professional</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Loan Amount (₹) <span class="req">*</span></label>
+            <input type="text" value="15,00,000" />
+          </div>
+          <div class="field-group">
+            <label>Business Industry <span class="req">*</span></label>
+            <select>
+              <option>Retail &amp; Trading</option>
+              <option>Manufacturing</option>
+              <option>Services</option>
+            </select>
+          </div>
+          <div class="field-group">
+            <label>Business Age (yrs) <span class="req">*</span></label>
+            <input type="number" value="5" min="0" />
+          </div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'Mobile Number Check', detail: '9999900000 · 10-digit Indian mobile', time: 'just now', status: 'VALID', type: 'done' },
+      { action: 'PAN Format', detail: 'ABCPE1234F · 4th char P = Individual', time: '3s ago', status: 'VALID', type: 'done' },
+      { action: 'PIN Lookup', detail: '400001 → Fort, Mumbai, MH', time: '5s ago', status: 'MATCHED', type: 'done' },
+      { action: 'Age Check', detail: '40 yrs · within 23-65 band', time: '8s ago', status: 'ELIGIBLE', type: 'done' },
+      { action: 'Geography Check', detail: 'Mumbai is in serviceable area', time: '10s ago', status: 'SERVICEABLE', type: 'done' }
+    ]
+  },
+
+  { num: 2, stage: SALES, name: 'PAN + OCR + NSDL + Dedupe', title: '🪪 PAN Capture · OCR · NSDL Validate · Internal Dedupe', eta: '~2 min', owner: 'Sales Officer',
+    body: `
+      <div class="form-section">
+        <div class="section-label">A · Upload PAN Card</div>
+        <div class="file-upload file-uploaded" style="text-align:left">
+          ✓ <strong>PAN_Rahul_Sharma.jpg</strong> uploaded · 412 KB · <a href="#" onclick="event.preventDefault()">replace</a>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">B · OCR Extracted Data — Please Confirm</div>
+        <div class="info-banner">
+          <strong>AI OCR complete in 1.8s.</strong> Sales officer to review extracted fields with applicant and confirm accuracy before proceeding.
+        </div>
+        <div class="form-grid two-col">
+          <div class="field-group">
+            <label>Name on PAN <span class="auto-fill">AUTO-FILLED</span></label>
+            <input type="text" value="RAHUL SHARMA" />
+          </div>
+          <div class="field-group">
+            <label>Father's Name <span class="auto-fill">AUTO-FILLED</span></label>
+            <input type="text" value="SURESH KUMAR SHARMA" />
+          </div>
+          <div class="field-group">
+            <label>PAN Number <span class="auto-fill">AUTO-FILLED</span></label>
+            <input type="text" value="ABCPE1234F" />
+          </div>
+          <div class="field-group">
+            <label>Date of Birth <span class="auto-fill">AUTO-FILLED</span></label>
+            <input type="text" value="15/06/1985" />
+          </div>
+        </div>
+        <div class="option-card selected" style="margin-top:12px">
+          <input type="checkbox" checked />
+          <div>
+            <div class="opt-label">Applicant has visually confirmed OCR data is correct</div>
+            <div class="opt-desc">SO has read the above values aloud and applicant has acknowledged</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">C · NSDL Validation Result</div>
+        <div class="success-banner">
+          <strong>✓ PAN Verified via NSDL</strong> · Name match 100% · Status: ACTIVE · Category: Individual · Response time: 1.2s
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">D · Internal Dedupe &amp; Negative Check</div>
+        <div class="dedupe-result dedupe-clean">
+          <div class="dedupe-icon">✓</div>
+          <div class="dedupe-content">
+            <div class="dedupe-label">Existing Customer Database</div>
+            <div class="dedupe-detail">No match found · new to NBFC</div>
+          </div>
+        </div>
+        <div class="dedupe-result dedupe-clean">
+          <div class="dedupe-icon">✓</div>
+          <div class="dedupe-content">
+            <div class="dedupe-label">Application Rejection List (last 6 months)</div>
+            <div class="dedupe-detail">No prior rejections · clean</div>
+          </div>
+        </div>
+        <div class="dedupe-result dedupe-clean">
+          <div class="dedupe-icon">✓</div>
+          <div class="dedupe-content">
+            <div class="dedupe-label">Internal Fraud List</div>
+            <div class="dedupe-detail">No match in fraud database</div>
+          </div>
+        </div>
+        <div class="dedupe-result dedupe-found">
+          <div class="dedupe-icon">⚠</div>
+          <div class="dedupe-content">
+            <div class="dedupe-label">Work-in-Progress (WIP) Applications</div>
+            <div class="dedupe-detail">1 draft application found · Started 18 days ago · Status: Abandoned at Step 3 · <a href="#" onclick="event.preventDefault();return false" style="color:#7d5a00;text-decoration:underline">View / Resume</a></div>
+          </div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'PAN Image Upload', detail: 'File: 412KB · JPG · clarity score 0.92', time: '2m ago', status: 'RECEIVED', type: 'done' },
+      { action: 'OCR Processing', detail: 'Tesseract + AI post-processing · 4 fields extracted', time: '1m 45s', status: 'SUCCESS', type: 'done' },
+      { action: 'NSDL Verify Call', detail: 'API call · response in 1.2s · Active status', time: '1m 30s', status: 'VERIFIED', type: 'done' },
+      { action: 'Internal Dedupe', detail: 'Checked against 4 lists · 1 WIP found', time: '1m ago', status: 'REVIEW', type: 'pending' },
+      { action: 'Fraud List Match', detail: 'No match in internal fraud DB', time: '45s ago', status: 'CLEAN', type: 'done' },
+      { action: 'WIP Alert', detail: 'Prior draft abandoned · suggest resume or new', time: '20s ago', status: 'FLAGGED', type: 'info' }
+    ]
+  },
+
+  { num: 3, stage: SALES, name: 'Customer Consent', title: '🔐 Customer Consent — Send &amp; Receive', eta: '~2 min', owner: 'Sales Officer + Applicant',
+    body: `
+      <div class="info-banner">
+        <strong>Split view:</strong> Left side shows what the Sales Officer sees in the LoanFlow app. Right side mocks up what the applicant sees on their mobile phone.
+      </div>
+      <div class="split-view">
+        <div class="so-view">
+          <div class="section-label">Sales Officer Side</div>
+          <div class="summary-list">
+            <div class="summary-row"><span class="k">Applicant</span><span class="v">Rahul Sharma</span></div>
+            <div class="summary-row"><span class="k">Mobile</span><span class="v">9999900000</span></div>
+            <div class="summary-row"><span class="k">Email</span><span class="v">rahul.sharma@example.com</span></div>
+            <div class="summary-row"><span class="k">Consent Link</span><span class="v" style="font-size:10px">lnflw.in/c/abc123 ✓ sent</span></div>
+          </div>
+          <div style="margin-bottom:12px">
+            <span class="status-pill status-received">✓ CONSENT RECEIVED</span>
+          </div>
+          <div class="btn-group" style="margin-bottom:12px">
+            <button class="btn btn-secondary">📤 Resend Link</button>
+            <button class="btn btn-secondary">🔄 Check Status</button>
+          </div>
+          <div class="summary-list">
+            <div class="summary-row"><span class="k">Sent Timestamp</span><span class="v">23-Apr · 14:32 IST</span></div>
+            <div class="summary-row"><span class="k">Received Timestamp</span><span class="v">23-Apr · 14:34 IST</span></div>
+            <div class="summary-row"><span class="k">Applicant IP</span><span class="v">49.36.x.x</span></div>
+            <div class="summary-row"><span class="k">Device</span><span class="v">Android · Chrome</span></div>
+            <div class="summary-row"><span class="k">Geo</span><span class="v">Mumbai, IN</span></div>
+            <div class="summary-row"><span class="k">Consent Hash</span><span class="v" style="font-size:10px">0x8a3f...e21b</span></div>
+          </div>
+        </div>
+        <div>
+          <div class="section-label">Borrower's Phone (Preview)</div>
+          <div class="phone-view">
+            <div class="phone-screen">
+              <div class="phone-logo">🏦 LoanFlow</div>
+              <h3>Verify your identity</h3>
+              <p>Ravi from LoanFlow has requested your consent to proceed with a business loan application.</p>
+              <div class="phone-field">
+                <label>Mobile Number</label>
+                <input type="tel" value="9999900000" readonly />
+              </div>
+              <div class="phone-field">
+                <label>OTP sent to your mobile</label>
+                <input type="text" value="847293" readonly style="letter-spacing:3px" />
+              </div>
+              <div class="phone-check">
+                <input type="checkbox" checked />
+                <span>I agree to KYC &amp; bureau check</span>
+              </div>
+              <div class="phone-check">
+                <input type="checkbox" checked />
+                <span>I accept Terms &amp; Privacy Policy</span>
+              </div>
+              <div class="phone-check">
+                <input type="checkbox" checked />
+                <span>I agree to Account Aggregator use</span>
+              </div>
+              <button class="phone-btn" onclick="return false">✓ Confirm &amp; Submit</button>
+              <div style="text-align:center;margin-top:10px;font-size:10px;color:#27ae60;font-weight:600">✓ Consent submitted at 14:34 IST</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'Consent Link Generated', detail: 'One-time secure link · 15-min expiry', time: '3m ago', status: 'CREATED', type: 'done' },
+      { action: 'SMS Dispatch', detail: 'Sent to 9999900000 via TextLocal', time: '2m 45s', status: 'DELIVERED', type: 'done' },
+      { action: 'Email Dispatch', detail: 'Sent to rahul.sharma@example.com', time: '2m 45s', status: 'DELIVERED', type: 'done' },
+      { action: 'Link Opened', detail: 'Borrower clicked · Android Chrome · Mumbai', time: '2m ago', status: 'OPENED', type: 'done' },
+      { action: 'OTP Verification (borrower)', detail: 'Borrower entered OTP 847293 · matched', time: '1m 45s', status: 'VERIFIED', type: 'done' },
+      { action: 'Consent Submitted', detail: '3 consents accepted · IP + geo + device captured', time: '1m ago', status: 'RECEIVED', type: 'done' },
+      { action: 'Audit Trail', detail: 'Consent hash written to immutable log', time: 'just now', status: 'SEALED', type: 'done' }
+    ]
+  },
+
+  { num: 4, stage: SALES, name: 'OTP Verification', title: '🔑 OTP Verification (SO Side)', eta: '~30s', owner: 'Sales Officer',
+    body: `
+      <div class="info-banner">
+        <strong>Why again?</strong> Consent step confirmed identity. This OTP is for SO-side verification — SO asks applicant to read the OTP from their phone to confirm the person physically present matches the consenting party.
+      </div>
+      <div class="form-section">
+        <div class="section-label">A · Identity Confirmation OTP</div>
+        <div class="form-grid two-col">
+          <div class="field-group">
+            <label>Applicant Mobile</label>
+            <input type="tel" value="9999900000" readonly />
+          </div>
+          <div class="field-group">
+            <label>Enter OTP (read by applicant) <span class="req">*</span> <span class="status-ok">✓ verified</span></label>
+            <input type="text" value="523891" maxlength="6" style="letter-spacing:4px;font-size:16px" />
+            <div class="hint"><a href="#" onclick="event.preventDefault()">Resend OTP</a> · Valid for 2:45</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">B · Attribution &amp; Session Metadata</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Session ID</span><span class="v">SES-20260423-MUM-04-8127</span></div>
+          <div class="summary-row"><span class="k">SO Device</span><span class="v">iPad Pro · LoanFlow iOS v4.2</span></div>
+          <div class="summary-row"><span class="k">SO Geo-fence</span><span class="v">✓ Inside MUM-BR-04 boundary</span></div>
+          <div class="summary-row"><span class="k">Applicant Present</span><span class="v">✓ In-branch · confirmed by SO</span></div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'OTP Dispatch', detail: 'SMS to 9999900000 · 6-digit · 10-min validity', time: '1m ago', status: 'SENT', type: 'done' },
+      { action: 'Delivery Confirmation', detail: 'Carrier ack received in 3s', time: '1m ago', status: 'DELIVERED', type: 'done' },
+      { action: 'OTP Verification', detail: 'SO entered 523891 · matches dispatched code', time: 'just now', status: 'VERIFIED', type: 'done' },
+      { action: 'Presence Confirmation', detail: 'Applicant physically with SO · geo-fenced session', time: 'just now', status: 'CONFIRMED', type: 'done' }
+    ]
+  },
+
+  { num: 5, stage: SALES, name: 'KYC — Aadhaar + Liveness + External Checks', title: '🔍 KYC · Aadhaar · Liveness · External Fraud/Sanctions', eta: '~3 min', owner: 'Sales Officer + System',
+    body: `
+      <div class="form-section">
+        <div class="section-label">A · Aadhaar Authentication</div>
+        <div class="option-card selected">
+          <input type="radio" checked name="aadhaar-method" />
+          <div style="flex:1">
+            <div class="opt-label">Aadhaar / VID + OTP</div>
+            <div class="opt-desc">Enter 12-digit Aadhaar or 16-digit VID · OTP sent to linked mobile · instant UIDAI eKYC</div>
+          </div>
+        </div>
+        <div class="form-grid two-col" style="margin-top:10px">
+          <div class="field-group">
+            <label>Aadhaar / VID <span class="req">*</span> <span class="status-ok">✓ captured</span></label>
+            <input type="text" value="XXXX XXXX 9821" readonly />
+            <div class="hint">Masked per UIDAI storage policy</div>
+          </div>
+          <div class="field-group">
+            <label>OTP (Aadhaar-linked mobile) <span class="req">*</span> <span class="status-ok">✓ verified</span></label>
+            <input type="text" value="523891" maxlength="6" style="letter-spacing:4px" readonly />
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">B · Identity Verification Checks</div>
+        <div class="loading-check check-done"><div class="check-icon">✓</div><div class="check-label">UIDAI eKYC Response Received</div><div class="check-status">Name, DOB, address, photo · 2.1s</div></div>
+        <div class="loading-check check-done"><div class="check-icon">✓</div><div class="check-label">PAN ↔ Aadhaar Seeding</div><div class="check-status">Linked since 2019</div></div>
+        <div class="loading-check check-done"><div class="check-icon">✓</div><div class="check-label">Tri-source Name Match (PAN + Aadhaar + Declared)</div><div class="check-status">100% match</div></div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">C · Liveness &amp; Selfie Match</div>
+        <div class="form-grid two-col">
+          <div class="field-group">
+            <label>Live Selfie <span class="status-ok">✓ done</span></label>
+            <div style="background:#f7f9fb;border:1px solid #dce1e5;border-radius:3px;padding:24px;text-align:center;color:#7f8c8d;font-size:11px">
+              👤 Selfie preview<br/>
+              <small>Liveness 0.94</small>
+            </div>
+          </div>
+          <div class="field-group">
+            <label>Face Match vs Aadhaar Photo <span class="status-ok">✓ 92%</span></label>
+            <div style="background:#e8f8ef;border:1px solid #a9dfbf;border-radius:3px;padding:24px;text-align:center;color:#1d7a3e;font-size:11px">
+              ✅ MATCH<br/>
+              <small>Confidence 92%</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">D · External Fraud &amp; Sanctions Screening</div>
+        <div class="loading-check check-done"><div class="check-icon">✓</div><div class="check-label">RBI Defaulter List</div><div class="check-status">No match</div></div>
+        <div class="loading-check check-done"><div class="check-icon">✓</div><div class="check-label">RBI Wilful Defaulter List</div><div class="check-status">No match</div></div>
+        <div class="loading-check check-done"><div class="check-icon">✓</div><div class="check-label">CFCA Fraud Monitoring Database</div><div class="check-status">No hits</div></div>
+        <div class="loading-check check-done"><div class="check-icon">✓</div><div class="check-label">UN / OFAC Sanctions List</div><div class="check-status">No match</div></div>
+        <div class="loading-check check-done"><div class="check-icon">✓</div><div class="check-label">PEP (Politically Exposed Persons)</div><div class="check-status">No match</div></div>
+        <div class="loading-check check-doing"><div class="check-icon">⟳</div><div class="check-label">Adverse Media AI Scan</div><div class="check-status">Scanning Indian news archives...</div></div>
+      </div>
+    `,
+    events: [
+      { action: 'Aadhaar Capture', detail: 'Method: Aadhaar+OTP · masked after capture', time: '3m ago', status: 'CAPTURED', type: 'done' },
+      { action: 'UIDAI eKYC', detail: 'Name, DOB, address, photo signed by UIDAI', time: '2m 30s', status: 'VERIFIED', type: 'done' },
+      { action: 'Tri-source Match', detail: 'PAN, Aadhaar, declared all agree', time: '2m ago', status: 'MATCHED', type: 'done' },
+      { action: 'Liveness Detection', detail: 'Real face · no spoof markers', time: '1m 45s', status: 'PASSED', type: 'done' },
+      { action: 'Face Match', detail: 'Selfie vs Aadhaar photo · 92%', time: '1m 30s', status: 'MATCHED', type: 'done' },
+      { action: 'RBI Defaulter Check', detail: 'Clean against RBI lists', time: '1m ago', status: 'CLEAN', type: 'done' },
+      { action: 'Sanctions Screening', detail: 'UN, OFAC, PEP all clean', time: '45s ago', status: 'CLEAN', type: 'done' },
+      { action: 'CFCA Fraud DB', detail: 'No hits in fraud monitoring DB', time: '30s ago', status: 'CLEAN', type: 'done' },
+      { action: 'Adverse Media AI', detail: 'Running news archive scan...', time: 'now', status: 'RUNNING', type: 'info' }
+    ]
+  },
+
+  { num: 6, stage: SALES, name: 'Address Details', title: '🏠 Address Details + Proof Upload', eta: '~2 min', owner: 'Sales Officer',
+    body: `
+      <div class="success-banner">
+        <strong>✓ Address auto-filled</strong> from Aadhaar eKYC (Step 5). SO to verify with applicant and edit if needed.
+      </div>
+      <div class="form-section">
+        <div class="section-label">A · Current Residential Address</div>
+        <div class="form-grid">
+          <div class="field-group span-3">
+            <label>Address Line 1 <span class="req">*</span> <span class="auto-fill">AADHAAR</span></label>
+            <input type="text" value="A-402, Sagar Residency" />
+          </div>
+          <div class="field-group span-2">
+            <label>Address Line 2 <span class="auto-fill">AADHAAR</span></label>
+            <input type="text" value="Near Phoenix Mall, LBS Road" />
+          </div>
+          <div class="field-group">
+            <label>Landmark</label>
+            <input type="text" value="Opp. SBI Branch" />
+          </div>
+          <div class="field-group"><label>City <span class="req">*</span></label><input type="text" value="Mumbai" /></div>
+          <div class="field-group"><label>State <span class="req">*</span></label><select><option>Maharashtra</option></select></div>
+          <div class="field-group"><label>PIN <span class="req">*</span></label><input type="text" value="400001" /></div>
+          <div class="field-group">
+            <label>Residence Type <span class="req">*</span></label>
+            <select><option>Owned (Self)</option><option>Owned (Family)</option><option>Rented</option></select>
+          </div>
+          <div class="field-group"><label>Years at Address <span class="req">*</span></label><input type="number" value="7" /></div>
+          <div class="field-group">
+            <label>Address Proof Type <span class="req">*</span></label>
+            <select><option>Aadhaar (already verified)</option><option>Utility Bill</option><option>Rental Agreement</option><option>Passport</option></select>
+          </div>
+        </div>
+        <div class="file-upload file-uploaded" style="margin-top:10px">
+          ✓ <strong>Address_Proof_Electricity_Bill_Mar2026.pdf</strong> · 892 KB · <a href="#" onclick="event.preventDefault()">replace</a>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">B · Business Address</div>
+        <div class="option-card">
+          <input type="checkbox" />
+          <div>
+            <div class="opt-label">Same as residential address</div>
+            <div class="opt-desc">Only for home-based businesses</div>
+          </div>
+        </div>
+        <div class="form-grid" style="margin-top:10px">
+          <div class="field-group span-3">
+            <label>Business Address Line 1 <span class="req">*</span></label>
+            <input type="text" value="Shop 12, Ground Floor, Crystal Plaza" />
+          </div>
+          <div class="field-group span-2">
+            <label>Line 2</label>
+            <input type="text" value="Andheri West Link Road" />
+          </div>
+          <div class="field-group"><label>PIN <span class="req">*</span></label><input type="text" value="400053" /></div>
+        </div>
+        <div class="file-upload file-uploaded" style="margin-top:10px">
+          ✓ <strong>Business_Address_Shop_Act_License.pdf</strong> · 1.4 MB · <a href="#" onclick="event.preventDefault()">replace</a>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'Address Auto-fill', detail: 'Residential address populated from Aadhaar eKYC', time: '2m ago', status: 'FILLED', type: 'done' },
+      { action: 'PIN Validation', detail: 'Residential PIN 400001 · Business PIN 400053 · both serviceable', time: '1m 30s', status: 'VALID', type: 'done' },
+      { action: 'Aadhaar Address Match', detail: '89% match · minor building name variance', time: '1m ago', status: 'MOSTLY MATCH', type: 'info' },
+      { action: 'Utility Bill OCR', detail: 'Name &amp; address extracted · matches declared', time: '30s ago', status: 'VERIFIED', type: 'done' },
+      { action: 'Shop Act OCR', detail: 'License valid until Mar 2028 · business name match', time: '15s ago', status: 'VERIFIED', type: 'done' }
+    ]
+  },
+
+  { num: 7, stage: SALES, name: 'Business Details', title: '🏢 Business Profile + Certificates', eta: '~3 min', owner: 'Sales Officer',
+    body: `
+      <div class="form-section">
+        <div class="section-label">A · Business Identity</div>
+        <div class="form-grid">
+          <div class="field-group span-2">
+            <label>Legal Business Name <span class="req">*</span></label>
+            <input type="text" value="Sharma Electronics &amp; Appliances" />
+          </div>
+          <div class="field-group">
+            <label>Trade Name</label>
+            <input type="text" value="Sharma Digital Hub" />
+          </div>
+          <div class="field-group">
+            <label>Constitution <span class="req">*</span></label>
+            <select><option>Proprietorship</option><option>Partnership</option><option>LLP</option><option>Pvt Ltd</option></select>
+          </div>
+          <div class="field-group">
+            <label>GSTIN <span class="auto-fill">VERIFIED</span></label>
+            <input type="text" value="27ABCPE1234F1Z5" />
+          </div>
+          <div class="field-group">
+            <label>Udyam Registration <span class="auto-fill">VERIFIED</span></label>
+            <input type="text" value="UDYAM-MH-18-0012345" />
+          </div>
+          <div class="field-group"><label>Years in Business <span class="req">*</span></label><input type="number" value="5" /></div>
+          <div class="field-group">
+            <label>MSME Category</label>
+            <select><option>Micro</option><option>Small</option><option>Medium</option></select>
+          </div>
+          <div class="field-group">
+            <label>Annual Turnover <span class="auto-fill">FROM GST</span></label>
+            <input type="text" value="₹ 2.8 Cr" />
+          </div>
+          <div class="field-group">
+            <label>Employees</label>
+            <input type="number" value="8" />
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">B · Business Documents</div>
+        <div class="form-grid two-col">
+          <div class="field-group">
+            <label>GST Certificate <span class="req">*</span></label>
+            <div class="file-upload file-uploaded">✓ <strong>GST_Cert_Sharma_Electronics.pdf</strong> · 680 KB</div>
+          </div>
+          <div class="field-group">
+            <label>Shop &amp; Establishment License</label>
+            <div class="file-upload file-uploaded">✓ <strong>Shop_Act_License.pdf</strong> · 1.4 MB</div>
+          </div>
+          <div class="field-group">
+            <label>Udyam/MSME Certificate</label>
+            <div class="file-upload file-uploaded">✓ <strong>Udyam_Registration.pdf</strong> · 420 KB</div>
+          </div>
+          <div class="field-group">
+            <label>Partnership/MOA (if applicable)</label>
+            <div class="file-upload">📎 Not applicable for Proprietorship</div>
+          </div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'GSTIN API Verify', detail: '27ABCPE1234F1Z5 · Active · returns filed through Mar 2026', time: '2m ago', status: 'ACTIVE', type: 'done' },
+      { action: 'GST Turnover Extract', detail: 'FY26 turnover: ₹2.8 Cr · auto-filled', time: '1m 45s', status: 'EXTRACTED', type: 'done' },
+      { action: 'Udyam Portal Check', detail: 'Micro enterprise · trading sector · active', time: '1m 20s', status: 'VERIFIED', type: 'done' },
+      { action: 'GST Certificate OCR', detail: 'Business name, address, jurisdiction match', time: '50s ago', status: 'VERIFIED', type: 'done' },
+      { action: 'MCA Director Check', detail: 'N/A for Proprietorship · skipped', time: '30s ago', status: 'SKIPPED', type: 'info' },
+      { action: 'GST Filing Cadence', detail: '36 months · no late filings · healthy', time: '15s ago', status: 'GOOD', type: 'done' }
+    ]
+  },
+
+  { num: 8, stage: SALES, name: 'Financial Snapshot', title: '💰 Financials + ITR/P&amp;L Uploads', eta: '~3 min', owner: 'Sales Officer',
+    body: `
+      <div class="form-section">
+        <div class="section-label">A · Business Financials</div>
+        <div class="form-grid">
+          <div class="field-group">
+            <label>Avg Monthly Revenue <span class="auto-fill">FROM BANK</span></label>
+            <input type="text" value="₹ 23,00,000" />
+          </div>
+          <div class="field-group">
+            <label>Avg Monthly Net Profit <span class="req">*</span></label>
+            <input type="text" value="₹ 3,50,000" />
+          </div>
+          <div class="field-group">
+            <label>Annual Turnover <span class="auto-fill">FROM GST</span></label>
+            <input type="text" value="₹ 2.80 Cr" />
+          </div>
+          <div class="field-group">
+            <label>FY25 ITR Filed Income <span class="auto-fill">FROM ITR</span></label>
+            <input type="text" value="₹ 18,50,000" />
+          </div>
+          <div class="field-group">
+            <label>Gross Profit Margin</label>
+            <input type="text" value="22%" />
+          </div>
+          <div class="field-group">
+            <label>Seasonality</label>
+            <select><option>Moderate</option><option>Low</option><option>High</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">B · Existing Obligations</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Home Loan · HDFC · 12y remaining</span><span class="v">₹ 42,000 / mo</span></div>
+          <div class="summary-row"><span class="k">Auto Loan · Mahindra · 2y remaining</span><span class="v">₹ 18,500 / mo</span></div>
+          <div class="summary-row"><span class="k">Credit Card · SBI · avg utilization</span><span class="v">₹ 8,000 / mo</span></div>
+          <div class="summary-row"><span class="k" style="font-weight:600">Total EMI Obligations</span><span class="v">₹ 68,500</span></div>
+        </div>
+        <button class="btn btn-secondary" onclick="return false">+ Add Obligation</button>
+      </div>
+      <div class="form-section">
+        <div class="section-label">C · Document Uploads</div>
+        <div class="form-grid two-col">
+          <div class="field-group">
+            <label>ITR FY25 (Form 16 / Return) <span class="req">*</span></label>
+            <div class="file-upload file-uploaded">✓ <strong>ITR_FY25_Rahul_Sharma.pdf</strong> · 1.8 MB</div>
+          </div>
+          <div class="field-group">
+            <label>ITR FY24 <span class="req">*</span></label>
+            <div class="file-upload file-uploaded">✓ <strong>ITR_FY24_Rahul_Sharma.pdf</strong> · 1.7 MB</div>
+          </div>
+          <div class="field-group">
+            <label>P&amp;L Statement FY25</label>
+            <div class="file-upload file-uploaded">✓ <strong>P&amp;L_FY25.pdf</strong> · 620 KB</div>
+          </div>
+          <div class="field-group">
+            <label>Balance Sheet FY25</label>
+            <div class="file-upload file-uploaded">✓ <strong>BS_FY25.pdf</strong> · 590 KB</div>
+          </div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'ITR OCR Processing', detail: 'FY25 &amp; FY24 PDFs · structured fields extracted', time: '2m ago', status: 'COMPLETE', type: 'done' },
+      { action: 'ITR Cross-check', detail: 'ITR income ₹18.5L vs declared profit ₹42L/yr · 2.3x variance', time: '1m 30s', status: 'REVIEW', type: 'pending' },
+      { action: 'FOIR Pre-calc', detail: 'Current EMIs ₹68.5k · Est new EMI ₹62k · FOIR 42% · within cap', time: '1m ago', status: 'WITHIN LIMIT', type: 'done' },
+      { action: 'GST vs Declared', detail: 'GST turnover ₹2.8 Cr ÷ 12 = ₹23.3L avg · matches declared ₹23L', time: '45s ago', status: 'CONSISTENT', type: 'done' },
+      { action: 'P&amp;L Ratio Analysis', detail: 'GP margin 22% · within industry benchmark for retail', time: '20s ago', status: 'NORMAL', type: 'done' }
+    ]
+  },
+
+  { num: 9, stage: SALES, name: 'Bank Statement', title: '🏦 Bank Statement (Account Aggregator)', eta: '~2 min', owner: 'Sales Officer + Applicant',
+    body: `
+      <div class="info-banner">
+        <strong>Recommendation:</strong> Use Account Aggregator (AA) framework — consent-based, instant, tamper-proof. Last 12 months.
+      </div>
+      <div class="form-section">
+        <div class="section-label">A · Retrieval Method</div>
+        <div class="option-card selected">
+          <input type="radio" checked name="retrieval" />
+          <div><div class="opt-label">Account Aggregator (Recommended)</div><div class="opt-desc">Consent via OneMoney / Finvu / NADL · real-time</div></div>
+        </div>
+        <div class="option-card" style="margin-top:8px">
+          <input type="radio" name="retrieval" />
+          <div><div class="opt-label">Upload PDF Statement</div><div class="opt-desc">Bank-issued e-statement · AI parses</div></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">B · Accounts Retrieved</div>
+        <div class="participant-card">
+          <div class="p-header">
+            <span class="p-name">HDFC Bank · Current · XXXXX1234 (Primary)</span>
+            <span class="p-type">AA-RETRIEVED</span>
+          </div>
+          <div class="p-details">12 months · 1,847 transactions · ₹3.2 Cr total credits · retrieved via OneMoney AA in 45s</div>
+        </div>
+        <button class="btn btn-secondary" onclick="return false" style="margin-top:4px">+ Add Secondary Bank Account</button>
+      </div>
+      <div class="form-section">
+        <div class="section-label">C · Cashflow Insights (AI-generated)</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Avg Monthly Credits</span><span class="v">₹ 22,85,000</span></div>
+          <div class="summary-row"><span class="k">Avg Monthly Debits</span><span class="v">₹ 21,10,000</span></div>
+          <div class="summary-row"><span class="k">Avg Month-end Balance</span><span class="v">₹ 3,45,000</span></div>
+          <div class="summary-row"><span class="k">Min EoD Balance (12m)</span><span class="v">₹ 1,24,000</span></div>
+          <div class="summary-row"><span class="k">Cheque Bounces (outward)</span><span class="v">1 (Jul 2025)</span></div>
+          <div class="summary-row"><span class="k">Inward Bounce / ECS Return</span><span class="v">0</span></div>
+          <div class="summary-row"><span class="k">Salary-like Credits Detected</span><span class="v">No (B2B heavy)</span></div>
+          <div class="summary-row"><span class="k">Bank Health Score</span><span class="v" style="color:#27ae60">Good · 7.8 / 10</span></div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'AA Consent Request', detail: 'OneMoney AA · 12m window · HDFC Bank', time: '3m ago', status: 'SENT', type: 'done' },
+      { action: 'Consent Approved', detail: 'Borrower approved in OneMoney app', time: '2m 20s', status: 'APPROVED', type: 'done' },
+      { action: 'Data Fetched', detail: '12m · 1,847 transactions · ₹3.2 Cr credits', time: '1m 45s', status: 'COMPLETE', type: 'done' },
+      { action: 'Cashflow Analysis', detail: 'Stability 82% · Seasonality low · Bounces 1', time: '1m ago', status: 'GOOD', type: 'done' },
+      { action: 'B2B Pattern', detail: 'No salary-like credits · regular GST payments', time: '30s ago', status: 'PROFILED', type: 'done' },
+      { action: 'Fraud Pattern Scan', detail: 'No circular transactions · no anomalies', time: '15s ago', status: 'CLEAN', type: 'done' }
+    ]
+  },
+
+  { num: 10, stage: SALES, name: 'Participants', title: '👥 Co-Applicants &amp; Guarantors', eta: '~3 min per participant', owner: 'Sales Officer',
+    body: `
+      <div class="info-banner">
+        <strong>Optional step:</strong> Add co-applicants or guarantors if required by policy or requested. Each participant goes through PAN capture + OCR + consent.
+      </div>
+      <div class="form-section">
+        <div class="section-label">A · Main Applicant</div>
+        <div class="participant-card">
+          <div class="p-header">
+            <span class="p-name">Rahul Sharma</span>
+            <span class="p-type">PRIMARY APPLICANT</span>
+          </div>
+          <div class="p-details">PAN: ABCPE1234F · Mobile: 9999900000 · DOB: 15-Jun-1985 · SEP Trading</div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">B · Added Participants</div>
+        <div class="participant-card">
+          <div class="p-header">
+            <span class="p-name">Priya Sharma (Spouse)</span>
+            <span class="p-type">CO-APP · FINANCIAL</span>
+          </div>
+          <div class="p-details">PAN: XYZPS5678K · Mobile: 9888800000 · DOB: 12-Mar-1987 · Salaried at Infosys Ltd<br/>Monthly Income: ₹ 1,85,000 · Consent: ✓ received · KYC: ✓ complete</div>
+          <div class="p-actions">
+            <button onclick="return false">Edit</button>
+            <button onclick="return false">View KYC</button>
+            <button onclick="return false">Remove</button>
+          </div>
+        </div>
+        <div class="participant-card">
+          <div class="p-header">
+            <span class="p-name">Suresh Kumar Sharma (Father)</span>
+            <span class="p-type guarantor">GUARANTOR</span>
+          </div>
+          <div class="p-details">PAN: PQRSS9012L · Mobile: 9777700000 · Age: 68 · Retired<br/>Net Worth: ₹ 1.2 Cr · Consent: ✓ received · KYC: ✓ complete</div>
+          <div class="p-actions">
+            <button onclick="return false">Edit</button>
+            <button onclick="return false">View KYC</button>
+            <button onclick="return false">Remove</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">C · Add Another Participant?</div>
+        <div class="form-grid two-col">
+          <div class="field-group">
+            <label>Participant Type</label>
+            <select>
+              <option>Co-Applicant (Financial)</option>
+              <option>Co-Applicant (Non-Financial)</option>
+              <option>Guarantor</option>
+            </select>
+            <div class="hint">Financial co-app shares liability · Non-financial is for context only (e.g., spouse on property) · Guarantor steps in on default</div>
+          </div>
+          <div class="field-group" style="justify-content:flex-end">
+            <button class="btn btn-primary" onclick="return false">+ Add Participant</button>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label">D · Ready to Proceed</div>
+        <div class="success-banner">
+          <strong>✓ 3 participants captured</strong> (1 primary + 1 financial co-app + 1 guarantor). All KYC complete, all consents received. Click Continue to proceed to credit underwriting.
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'Priya Sharma — PAN OCR', detail: 'XYZPS5678K · NSDL verified · Spouse relationship', time: '8m ago', status: 'VERIFIED', type: 'done' },
+      { action: 'Priya Sharma — Consent', detail: 'Sent via SMS · received in 3m', time: '7m ago', status: 'RECEIVED', type: 'done' },
+      { action: 'Priya Sharma — Income', detail: 'Salaried · Infosys · verified via salary slips + bank statement', time: '6m ago', status: 'VERIFIED', type: 'done' },
+      { action: 'Suresh Sharma — PAN OCR', detail: 'PQRSS9012L · NSDL verified · Father relationship', time: '4m ago', status: 'VERIFIED', type: 'done' },
+      { action: 'Suresh Sharma — Net Worth', detail: 'Property + FDs documented · ₹1.2 Cr', time: '3m ago', status: 'CAPTURED', type: 'done' },
+      { action: 'Suresh Sharma — KYC', detail: 'Aadhaar + Liveness + AML · all pass', time: '2m ago', status: 'PASSED', type: 'done' },
+      { action: 'Participant Summary', detail: '3 total · combined income profile strengthened', time: 'just now', status: 'READY', type: 'done' }
+    ]
+  },
+
+  // ============ STAGE: CREDIT UNDERWRITING ============
+
+  { num: 11, stage: CREDIT, name: 'Bureau Pull', title: '📊 Multi-Bureau Credit Report Pull', eta: '~1 min (auto)', owner: 'Credit Engine',
+    body: `
+      <div class="info-banner">
+        <strong>Automated step:</strong> System pulls credit reports from 4 bureaus for main applicant and all participants. Expected completion: under 60 seconds.
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">A · Bureau Scores — Rahul Sharma (Primary)</div>
+        <div class="bureau-grid">
+          <div class="bureau-card">
+            <div class="bureau-name">CIBIL Commercial</div>
+            <div class="bureau-score">768</div>
+            <div class="bureau-grade">Good · A-</div>
+          </div>
+          <div class="bureau-card">
+            <div class="bureau-name">CIBIL Consumer</div>
+            <div class="bureau-score">742</div>
+            <div class="bureau-grade">Good · A-</div>
+          </div>
+          <div class="bureau-card">
+            <div class="bureau-name">Experian</div>
+            <div class="bureau-score">755</div>
+            <div class="bureau-grade">Good</div>
+          </div>
+          <div class="bureau-card">
+            <div class="bureau-name">CRIF High Mark</div>
+            <div class="bureau-score">749</div>
+            <div class="bureau-grade">Good</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">B · Bureau Scores — Priya Sharma (Co-Applicant Financial)</div>
+        <div class="bureau-grid">
+          <div class="bureau-card">
+            <div class="bureau-name">CIBIL Consumer</div>
+            <div class="bureau-score">812</div>
+            <div class="bureau-grade">Excellent · A+</div>
+          </div>
+          <div class="bureau-card">
+            <div class="bureau-name">Experian</div>
+            <div class="bureau-score">805</div>
+            <div class="bureau-grade">Excellent</div>
+          </div>
+          <div class="bureau-card">
+            <div class="bureau-name">CRIF</div>
+            <div class="bureau-score">798</div>
+            <div class="bureau-grade">Excellent</div>
+          </div>
+          <div class="bureau-card">
+            <div class="bureau-name">Equifax</div>
+            <div class="bureau-score">791</div>
+            <div class="bureau-grade">Excellent</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">C · Summary Across All Participants</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Active Trade Lines (combined)</span><span class="v">5 loans · 3 credit cards</span></div>
+          <div class="summary-row"><span class="k">Historical DPD (24 months)</span><span class="v">0 days past due</span></div>
+          <div class="summary-row"><span class="k">Enquiries (last 6 months)</span><span class="v">3 total · within tolerance</span></div>
+          <div class="summary-row"><span class="k">Utilization on Credit Cards</span><span class="v">28% average · healthy</span></div>
+          <div class="summary-row"><span class="k">Oldest Credit Line</span><span class="v">11 years (home loan)</span></div>
+          <div class="summary-row"><span class="k">Guarantor History</span><span class="v">1 prior guarantee · repaid in full</span></div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'CIBIL Commercial', detail: 'Rahul · Score 768 · pulled 2.1s', time: '45s ago', status: 'GOOD', type: 'done' },
+      { action: 'CIBIL Consumer', detail: 'Rahul · Score 742 · pulled 1.8s', time: '42s ago', status: 'GOOD', type: 'done' },
+      { action: 'Experian', detail: 'Rahul · Score 755', time: '40s ago', status: 'GOOD', type: 'done' },
+      { action: 'CRIF High Mark', detail: 'Rahul · Score 749', time: '35s ago', status: 'GOOD', type: 'done' },
+      { action: 'Priya · All 4 Bureaus', detail: 'Excellent scores · 791-812 band', time: '20s ago', status: 'EXCELLENT', type: 'done' },
+      { action: 'Suresh · Guarantor Check', detail: 'Score 725 · 1 prior guarantee repaid', time: '10s ago', status: 'GOOD', type: 'done' },
+      { action: 'Enquiry Velocity', detail: '3 enquiries in 6m · under 6 threshold', time: 'just now', status: 'WITHIN LIMIT', type: 'done' }
+    ]
+  },
+
+  { num: 12, stage: CREDIT, name: 'BRE Decision Gate', title: '⚙️ Business Rules Engine — Automated Decision', eta: '~5s (auto)', owner: 'Credit Engine',
+    body: `
+      <div class="info-banner">
+        <strong>Automated decision:</strong> BRE evaluates 52 policy rules. Outcome drives routing — STP / Semi-STP / Manual CAM / Reject.
+      </div>
+      <div class="decision-tile">
+        <div class="decision-label">BRE Outcome</div>
+        <div class="decision-outcome">✓ Refer to Credit (Semi-STP)</div>
+        <div class="decision-reason">Passed 50/52 rules · 2 soft flags need analyst review · Proceed to CAM</div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">A · Rule Evaluation Summary</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Total Rules Evaluated</span><span class="v">52</span></div>
+          <div class="summary-row"><span class="k">Rules Passed</span><span class="v" style="color:#27ae60">50</span></div>
+          <div class="summary-row"><span class="k">Rules with Soft Flags</span><span class="v" style="color:#f39c12">2</span></div>
+          <div class="summary-row"><span class="k">Rules Failed (Hard)</span><span class="v" style="color:#27ae60">0</span></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">B · Key Rule Outcomes</div>
+        <div style="background:white;border:1px solid #dce1e5;border-radius:3px;overflow:hidden">
+          <div class="rule-row"><span class="rule-icon rule-pass">✓</span><span class="rule-name">CIBIL Commercial ≥ 700</span><span class="rule-value">768 (pass)</span></div>
+          <div class="rule-row"><span class="rule-icon rule-pass">✓</span><span class="rule-name">Age between 23-65</span><span class="rule-value">40 yrs (pass)</span></div>
+          <div class="rule-row"><span class="rule-icon rule-pass">✓</span><span class="rule-name">Business Vintage ≥ 3 years</span><span class="rule-value">5 yrs (pass)</span></div>
+          <div class="rule-row"><span class="rule-icon rule-pass">✓</span><span class="rule-name">No DPD 30+ in last 24m</span><span class="rule-value">0 DPD (pass)</span></div>
+          <div class="rule-row"><span class="rule-icon rule-pass">✓</span><span class="rule-name">FOIR after new loan ≤ 55%</span><span class="rule-value">42% (pass)</span></div>
+          <div class="rule-row"><span class="rule-icon rule-pass">✓</span><span class="rule-name">GSTIN Active + Returns Filed</span><span class="rule-value">Active (pass)</span></div>
+          <div class="rule-row"><span class="rule-icon rule-pass">✓</span><span class="rule-name">Bank Health Score ≥ 6.0</span><span class="rule-value">7.8 (pass)</span></div>
+          <div class="rule-row"><span class="rule-icon rule-pass">✓</span><span class="rule-name">No Fraud / Sanctions Match</span><span class="rule-value">Clean (pass)</span></div>
+          <div class="rule-row"><span class="rule-icon rule-warn">⚠</span><span class="rule-name">ITR-Declared Income Variance ≤ 50%</span><span class="rule-value">130% variance (soft flag)</span></div>
+          <div class="rule-row"><span class="rule-icon rule-warn">⚠</span><span class="rule-name">Cheque Bounces ≤ 0 in 12m</span><span class="rule-value">1 bounce Jul-25 (soft flag)</span></div>
+        </div>
+        <div style="margin-top:10px;font-size:11px;color:#7f8c8d;text-align:center"><em>Showing top 10 of 52 rules · <a href="#" onclick="event.preventDefault();return false" style="color:#8e44ad">view all rules →</a></em></div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">C · Routing Decision</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">STP Route Eligible?</span><span class="v" style="color:#e74c3c">No · 2 soft flags</span></div>
+          <div class="summary-row"><span class="k">Risk Grade (provisional)</span><span class="v">B+ (indicative rate 14.5 - 16.75%)</span></div>
+          <div class="summary-row"><span class="k">Routed To</span><span class="v" style="color:#8e44ad">Credit Analyst → CAM review</span></div>
+          <div class="summary-row"><span class="k">Indicative Eligibility</span><span class="v">Up to ₹ 18,00,000</span></div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'BRE Triggered', detail: '52 rules in policy v2.4 · eval started', time: '12s ago', status: 'RUNNING', type: 'done' },
+      { action: 'Rule Batch 1-20 (Eligibility)', detail: 'All pass', time: '10s ago', status: 'PASS', type: 'done' },
+      { action: 'Rule Batch 21-40 (Financial)', detail: '18 pass · 2 soft flags', time: '7s ago', status: 'SOFT FLAGS', type: 'pending' },
+      { action: 'Rule Batch 41-52 (Fraud/Behavior)', detail: 'All pass', time: '4s ago', status: 'PASS', type: 'done' },
+      { action: 'Risk Grade Calculation', detail: 'Provisional B+ · rate band assigned', time: '2s ago', status: 'GRADED', type: 'done' },
+      { action: 'Routing Decision', detail: 'Refer to Credit · analyst must review CAM', time: 'just now', status: 'SEMI-STP', type: 'info' }
+    ]
+  },
+
+  { num: 13, stage: CREDIT, name: 'CAM + Credit Analyst', title: '📄 Credit Assessment Memo (CAM) — Analyst Review', eta: '~15 min (analyst SLA)', owner: 'Credit Analyst',
+    body: `
+      <div class="info-banner">
+        <strong>CAM auto-generated</strong> from captured data. Credit analyst reviews, adds commentary, proposes terms, and routes to approver.
+      </div>
+      <div class="tabs">
+        <div class="tab credit active">Summary</div>
+        <div class="tab credit">Financial Analysis</div>
+        <div class="tab credit">Bureau Summary</div>
+        <div class="tab credit">Analyst Commentary</div>
+      </div>
+      <div class="cam-panel">
+        <h4>Applicant Snapshot</h4>
+        <div class="summary-list" style="background:white;border:none;padding:0;margin:0">
+          <div class="summary-row"><span class="k">Applicant</span><span class="v">Rahul Sharma · SEP · Trading</span></div>
+          <div class="summary-row"><span class="k">Business</span><span class="v">Sharma Electronics · Proprietorship · 5 yrs</span></div>
+          <div class="summary-row"><span class="k">Requested</span><span class="v">₹ 15,00,000</span></div>
+          <div class="summary-row"><span class="k">Co-Applicant</span><span class="v">Priya Sharma (Spouse) · Salaried ₹1.85L/m</span></div>
+          <div class="summary-row"><span class="k">Guarantor</span><span class="v">Suresh Sharma (Father) · NW ₹1.2Cr</span></div>
+        </div>
+      </div>
+      <div class="cam-panel">
+        <h4>Financial Fitness</h4>
+        <div class="summary-list" style="background:white;border:none;padding:0;margin:0">
+          <div class="summary-row"><span class="k">Business Revenue (12m avg)</span><span class="v">₹ 23,00,000 / mo</span></div>
+          <div class="summary-row"><span class="k">Net Profit (declared)</span><span class="v">₹ 3,50,000 / mo</span></div>
+          <div class="summary-row"><span class="k">Household Income (combined)</span><span class="v">₹ 5,35,000 / mo</span></div>
+          <div class="summary-row"><span class="k">Existing EMIs</span><span class="v">₹ 68,500 / mo</span></div>
+          <div class="summary-row"><span class="k">Proposed EMI (36m tenure)</span><span class="v">₹ 62,350 / mo</span></div>
+          <div class="summary-row"><span class="k">FOIR Post-new loan</span><span class="v" style="color:#27ae60">24.5% (well within 55% cap)</span></div>
+          <div class="summary-row"><span class="k">Bank Health Score</span><span class="v">7.8 / 10 (Good)</span></div>
+        </div>
+      </div>
+      <div class="cam-panel">
+        <h4>Soft Flags &amp; Mitigants</h4>
+        <div class="warn-banner" style="margin-bottom:8px">
+          <strong>Flag 1:</strong> ITR income ₹18.5L vs declared profit ₹42L/yr (130% variance). <strong>Mitigant:</strong> Business is cash-heavy; GST turnover matches declared at ₹23L/mo; recent scale-up in FY25.
+        </div>
+        <div class="warn-banner" style="margin-bottom:0">
+          <strong>Flag 2:</strong> 1 cheque bounce in Jul 2025 (₹28k). <strong>Mitigant:</strong> Isolated event · technical reason (counter-party Rs. error) · no pattern; otherwise clean.
+        </div>
+      </div>
+      <div class="cam-panel">
+        <h4>Analyst Recommendation</h4>
+        <div class="form-grid two-col">
+          <div class="field-group">
+            <label>Recommended Action</label>
+            <select><option>Approve with Conditions</option><option>Approve Clean</option><option>Refer Up</option><option>Reject</option></select>
+          </div>
+          <div class="field-group">
+            <label>Recommended Amount</label>
+            <input type="text" value="₹ 15,00,000" />
+          </div>
+          <div class="field-group">
+            <label>Recommended Rate</label>
+            <input type="text" value="15.25% p.a." />
+          </div>
+          <div class="field-group">
+            <label>Recommended Tenure</label>
+            <input type="text" value="36 months" />
+          </div>
+          <div class="field-group span-2">
+            <label>Analyst Commentary</label>
+            <textarea>Applicant demonstrates stable cashflow (bank health 7.8) and healthy FOIR (24.5%) even after new loan. Soft flags are explainable: cash-heavy retail trading business with GST-validated turnover, single bounce is an isolated incident. Co-applicant (salaried spouse) and guarantor (property-rich father) strengthen the case. Recommend approval with conditions: PDC, PG from guarantor, and EMI auto-debit mandate.</textarea>
+          </div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'CAM Auto-Generated', detail: 'Template filled from captured data · 8 sections', time: '12m ago', status: 'GENERATED', type: 'done' },
+      { action: 'Queued to Analyst', detail: 'Assigned to Credit Analyst Anjali M. · SLA 30m', time: '12m ago', status: 'ASSIGNED', type: 'done' },
+      { action: 'Analyst Opened', detail: 'Anjali reviewing · marked in-progress', time: '8m ago', status: 'REVIEWING', type: 'info' },
+      { action: 'Flag 1 Commentary', detail: 'ITR variance explained · cash-heavy business', time: '4m ago', status: 'ADDRESSED', type: 'done' },
+      { action: 'Flag 2 Commentary', detail: 'Single bounce · technical reason · isolated', time: '3m ago', status: 'ADDRESSED', type: 'done' },
+      { action: 'Recommendation Set', detail: '₹15L · 15.25% · 36m · Approve w/conditions', time: '1m ago', status: 'READY', type: 'done' },
+      { action: 'Routing to Approver', detail: 'Will route to L2 Branch Credit Manager', time: 'next', status: 'QUEUED', type: 'pending' }
+    ]
+  },
+
+  { num: 14, stage: CREDIT, name: 'Approval Workflow', title: '✅ Credit Approval — Delegated Authority Matrix', eta: '~4 hr SLA', owner: 'Branch Credit Manager',
+    body: `
+      <div class="info-banner">
+        <strong>Demo toggle:</strong> Use the buttons below to see how different approval outcomes look. Each produces a different path forward.
+      </div>
+      <div class="outcome-toggle">
+        <button class="outcome-btn" onclick="setOutcome('approve')">Clean Approve</button>
+        <button class="outcome-btn active conditional" onclick="setOutcome('conditional')">Approve w/ Conditions</button>
+        <button class="outcome-btn" onclick="setOutcome('reject')">Reject</button>
+      </div>
+
+      <div class="form-section">
+        <div class="section-label credit">A · Approval Authority Chain</div>
+        <div class="approval-chain">
+          <div class="approver-node approved">
+            <div class="approver-role">L0 · BRE</div>
+            <div class="approver-name">System</div>
+            <div class="approver-status approved">✓ Semi-STP</div>
+          </div>
+          <div class="approval-arrow">→</div>
+          <div class="approver-node approved">
+            <div class="approver-role">L1 · Analyst</div>
+            <div class="approver-name">Anjali M.</div>
+            <div class="approver-status approved">✓ Recommended</div>
+          </div>
+          <div class="approval-arrow">→</div>
+          <div class="approver-node current" id="currentApprover">
+            <div class="approver-role">L2 · BCM</div>
+            <div class="approver-name">Vikram S.</div>
+            <div class="approver-status current">⟳ Reviewing</div>
+          </div>
+          <div class="approval-arrow">→</div>
+          <div class="approver-node pending">
+            <div class="approver-role">L3 · RCH</div>
+            <div class="approver-name">(if escalated)</div>
+            <div class="approver-status pending">Pending</div>
+          </div>
+        </div>
+        <div class="hint" style="text-align:center">Delegated Authority Matrix: L2 BCM approves up to ₹25L · this case is within L2 authority</div>
+      </div>
+
+      <div id="outcomeContent">
+        <!-- Outcome-specific content injected here -->
+      </div>
+    `,
+    events: [
+      { action: 'CAM Received', detail: 'From Credit Analyst Anjali M. · with recommendation', time: '2h ago', status: 'RECEIVED', type: 'done' },
+      { action: 'DAM Routing', detail: 'Amount ₹15L · Risk B+ · routed to L2 BCM', time: '2h ago', status: 'ROUTED', type: 'done' },
+      { action: 'BCM Vikram Opened', detail: 'Approver started review · SLA 4h', time: '45m ago', status: 'IN PROGRESS', type: 'info' },
+      { action: 'Ledger Review', detail: 'BCM reviewed bank statement insights', time: '30m ago', status: 'REVIEWED', type: 'done' },
+      { action: 'Mitigant Check', detail: 'Guarantor net worth reviewed · accepted', time: '15m ago', status: 'OK', type: 'done' },
+      { action: 'Decision Recorded', detail: 'Approval entered · conditions added', time: '2m ago', status: 'DECIDED', type: 'done' }
+    ]
+  },
+
+  { num: 15, stage: CREDIT, name: 'Sanction + Offer', title: '🎯 Sanction Letter &amp; Offer Presentation', eta: '~3 min', owner: 'Sales Officer (with SO counter-offer)',
+    body: `
+      <div class="success-banner">
+        <strong>Sanction issued.</strong> Rahul is approved for ₹15,00,000 (conditional). Offer below is presented to borrower. SO may negotiate within ±50bps and ±10% principal (delegated discretion).
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">A · Sanction Summary</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Sanction Number</span><span class="v">SNL-BT-2026-MH-04-000127</span></div>
+          <div class="summary-row"><span class="k">Sanction Date</span><span class="v">23-Apr-2026</span></div>
+          <div class="summary-row"><span class="k">Validity</span><span class="v">30 days (till 23-May-2026)</span></div>
+          <div class="summary-row"><span class="k">Sanctioned Amount</span><span class="v">₹ 15,00,000</span></div>
+          <div class="summary-row"><span class="k">Interest Rate</span><span class="v">15.25% p.a. (reducing balance)</span></div>
+          <div class="summary-row"><span class="k">Approved By</span><span class="v">Vikram S., Branch Credit Manager</span></div>
+          <div class="summary-row"><span class="k">Conditions Attached</span><span class="v" style="color:#f39c12">4 (see below)</span></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">B · Tenure Options</div>
+        <div class="offer-grid">
+          <div class="offer-card">
+            <div class="offer-tenure">24 Months</div>
+            <div class="offer-emi">₹ 72,850</div>
+            <div class="offer-emi-sub">per month</div>
+            <div class="offer-details">
+              <div class="offer-row"><span class="k">Rate</span><span class="v">15.25% p.a.</span></div>
+              <div class="offer-row"><span class="k">Total Interest</span><span class="v">₹ 2,48,400</span></div>
+              <div class="offer-row"><span class="k">Total Payable</span><span class="v">₹ 17,48,400</span></div>
+            </div>
+          </div>
+          <div class="offer-card selected">
+            <div class="offer-tenure">36 Months <span class="offer-recommended">RECOMMENDED</span></div>
+            <div class="offer-emi">₹ 52,310</div>
+            <div class="offer-emi-sub">per month</div>
+            <div class="offer-details">
+              <div class="offer-row"><span class="k">Rate</span><span class="v">15.25% p.a.</span></div>
+              <div class="offer-row"><span class="k">Total Interest</span><span class="v">₹ 3,83,160</span></div>
+              <div class="offer-row"><span class="k">Total Payable</span><span class="v">₹ 18,83,160</span></div>
+            </div>
+          </div>
+          <div class="offer-card">
+            <div class="offer-tenure">48 Months</div>
+            <div class="offer-emi">₹ 41,740</div>
+            <div class="offer-emi-sub">per month</div>
+            <div class="offer-details">
+              <div class="offer-row"><span class="k">Rate</span><span class="v">15.50% p.a.</span></div>
+              <div class="offer-row"><span class="k">Total Interest</span><span class="v">₹ 5,03,520</span></div>
+              <div class="offer-row"><span class="k">Total Payable</span><span class="v">₹ 20,03,520</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">C · SO Counter-Offer (within delegated discretion)</div>
+        <div class="info-banner">
+          <strong>Need to negotiate?</strong> As SO, you can adjust within ±50 bps rate and ±10% principal. Beyond this, request re-approval from BCM.
+        </div>
+        <div class="form-grid">
+          <div class="field-group">
+            <label>Counter Amount</label>
+            <input type="text" value="₹ 15,00,000" />
+            <div class="hint">Allowed: ₹13.5L - ₹16.5L</div>
+          </div>
+          <div class="field-group">
+            <label>Counter Rate</label>
+            <input type="text" value="15.25% p.a." />
+            <div class="hint">Allowed: 14.75% - 15.75%</div>
+          </div>
+          <div class="field-group">
+            <label>Counter Tenure</label>
+            <select><option>36 months</option><option>24 months</option><option>48 months</option></select>
+          </div>
+          <div class="field-group span-3">
+            <label>Counter Reason (for audit)</label>
+            <textarea style="min-height:40px">Applicant requested lower EMI — offering 36m at same rate instead of 24m.</textarea>
+          </div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">D · Approval Conditions (to fulfill before disbursal)</div>
+        <div class="condition-row">
+          <div class="condition-num">1</div>
+          <div class="condition-text">
+            Personal Guarantee from Suresh Sharma (Father · guarantor captured)
+            <div class="condition-meta">Deadline: 28-Apr-2026 · Status: <span style="color:#7d5a00">Pending signature</span></div>
+          </div>
+        </div>
+        <div class="condition-row">
+          <div class="condition-num">2</div>
+          <div class="condition-text">
+            3 Post-Dated Cheques as security (amount = 1 EMI each)
+            <div class="condition-meta">Deadline: 28-Apr-2026 · Status: <span style="color:#7d5a00">Pending collection</span></div>
+          </div>
+        </div>
+        <div class="condition-row">
+          <div class="condition-num">3</div>
+          <div class="condition-text">
+            eNACH Mandate Registration on HDFC · 50200****1234
+            <div class="condition-meta">Deadline: 28-Apr-2026 · Status: <span style="color:#7d5a00">Pending applicant auth</span></div>
+          </div>
+        </div>
+        <div class="condition-row">
+          <div class="condition-num">4</div>
+          <div class="condition-text">
+            Updated GST return for Q4 FY26 (filed by 20-Apr)
+            <div class="condition-meta">Deadline: 28-Apr-2026 · Status: <span style="color:#27ae60">✓ Verified with GSTN</span></div>
+          </div>
+        </div>
+      </div>
+    `,
+    events: [
+      { action: 'Sanction Generated', detail: 'SNL-BT-2026-MH-04-000127 · PDF created', time: '5m ago', status: 'ISSUED', type: 'done' },
+      { action: 'Offer Tenures Calculated', detail: '3 variants · rates per risk grade band', time: '4m ago', status: 'READY', type: 'done' },
+      { action: 'Sanction Shared with SO', detail: 'Emailed to Ravi Kumar · linked to case', time: '3m ago', status: 'SENT', type: 'done' },
+      { action: 'Conditions Listed', detail: '4 conditions · all deadlined 28-Apr', time: '2m ago', status: 'LISTED', type: 'done' },
+      { action: 'SO Presenting to Applicant', detail: 'In-branch · reviewing tenure options', time: 'now', status: 'IN PROGRESS', type: 'info' }
+    ]
+  }
+
+];
+
+// ============================================
+// STATE & RENDERING
+// ============================================
+
+let currentStep = 1;
+let currentOutcome = 'conditional'; // for step 14 toggle
+
+function renderDots() {
+  const container = document.getElementById('stepDots');
+  container.innerHTML = '';
+  for (let i = 1; i <= 15; i++) {
+    const stepData = steps[i-1];
+    const dot = document.createElement('div');
+    dot.className = 'dot stage-' + stepData.stage;
+    if (i < currentStep) dot.classList.add('completed');
+    if (i === currentStep) dot.classList.add('active');
+    dot.onclick = () => goToStep(i);
+    dot.title = 'Step ' + i + ': ' + stepData.name;
+    container.appendChild(dot);
+    // Divider between stages
+    if (i === 10) {
+      const divider = document.createElement('div');
+      divider.className = 'dot stage-divider';
+      container.appendChild(divider);
+    }
+  }
+}
+
+function renderStageBanner(stage) {
+  const banner = document.getElementById('stageBanner');
+  const ownerSpan = document.getElementById('stageOwner');
+  if (stage === SALES) {
+    banner.className = 'stage-banner stage-sales';
+    banner.querySelector('span').textContent = 'STAGE: SALES APPLICATION CAPTURE';
+    ownerSpan.textContent = 'Owner: Sales Team · Sales Officer';
+  } else {
+    banner.className = 'stage-banner stage-credit';
+    banner.querySelector('span').textContent = 'STAGE: CREDIT UNDERWRITING';
+    ownerSpan.textContent = 'Owner: Credit Team · Analyst + BCM';
+  }
+}
+
+function renderStep() {
+  const s = steps[currentStep - 1];
+
+  document.getElementById('stepNum').textContent = 'Step ' + s.num + ' of 15';
+  document.getElementById('stepNum').className = 'step-num' + (s.stage === CREDIT ? ' credit' : '');
+  document.getElementById('stepName').textContent = s.name;
+  document.getElementById('stepEta').textContent = s.eta + (s.eta.includes('min') || s.eta.includes('hr') ? ' · ' + s.owner : ' · ' + s.owner);
+  document.getElementById('panelTitle').innerHTML = s.title;
+  document.getElementById('panelMeta').textContent = 'Auto-saved · just now';
+  document.getElementById('panelBody').innerHTML = s.body;
+
+  renderStageBanner(s.stage);
+
+  const prev = document.getElementById('prevBtn');
+  prev.disabled = (currentStep === 1);
+
+  const next = document.getElementById('nextBtn');
+  if (currentStep === 15) {
+    next.textContent = 'Start New Application';
+    next.className = 'btn btn-success';
+  } else {
+    next.textContent = 'Continue → Step ' + (currentStep + 1);
+    next.className = 'btn btn-primary' + (s.stage === CREDIT && currentStep < 15 ? ' credit' : '');
+  }
+
+  renderDots();
+  renderEvents(s.events);
+
+  // Step 14 — render default outcome content
+  if (currentStep === 14) {
+    setOutcome(currentOutcome);
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderEvents(events) {
+  const body = document.getElementById('agentBody');
+  body.innerHTML = '';
+
+  // Group events by agent
+  const grouped = {};
+  AGENTS.forEach(a => { grouped[a.id] = []; });
+
+  events.forEach(ev => {
+    const agentId = ev.agent || classifyEventToAgent(ev.action);
+    grouped[agentId].push(ev);
+  });
+
+  // Count active agents (those with >0 events this step)
+  const activeAgents = AGENTS.filter(a => grouped[a.id].length > 0);
+  const activeCount = activeAgents.length;
+  document.getElementById('agentsActiveCount').textContent = activeCount + ' active on this step';
+
+  // Render each agent as a card
+  AGENTS.forEach(agent => {
+    const agentEvents = grouped[agent.id];
+    const hasEvents = agentEvents.length > 0;
+
+    const card = document.createElement('div');
+    card.className = 'agent-card' + (hasEvents ? ' expanded' : '');
+
+    // Status badge
+    let statusHtml = '';
+    if (hasEvents) {
+      // Check if any event is "running" / "in progress" type
+      const anyRunning = agentEvents.some(e => e.type === 'info' || (e.status && /RUNNING|IN PROGRESS|REVIEWING/.test(e.status)));
+      if (anyRunning) {
+        statusHtml = '<span class="agent-status-badge agent-active">ACTIVE</span>';
+      } else {
+        statusHtml = '<span class="agent-status-badge agent-complete">✓ DONE</span>';
+      }
+    } else {
+      statusHtml = '<span class="agent-status-badge agent-idle">IDLE</span>';
+    }
+
+    const countPill = hasEvents ? '<span class="agent-count-pill">' + agentEvents.length + '</span>' : '';
+
+    const header = document.createElement('div');
+    header.className = 'agent-card-header';
+    header.innerHTML =
+      '<div class="agent-chip ' + agent.chipClass + '">' + agent.icon + '</div>' +
+      '<div style="flex:1;min-width:0">' +
+        '<div class="agent-name">' + agent.name + '</div>' +
+        '<div class="agent-name-sub">' + agent.tagline + '</div>' +
+      '</div>' +
+      countPill + statusHtml +
+      '<span class="agent-caret">▶</span>';
+
+    header.onclick = () => { card.classList.toggle('expanded'); };
+    card.appendChild(header);
+
+    const bodyDiv = document.createElement('div');
+    bodyDiv.className = 'agent-card-body';
+
+    if (hasEvents) {
+      agentEvents.forEach(ev => {
+        const evEl = document.createElement('div');
+        evEl.className = 'agent-event';
+        const statusClass = 'status-' + (ev.type === 'done' ? 'done' : ev.type === 'pending' ? 'pending' : ev.type === 'alert' ? 'alert' : 'info');
+        evEl.innerHTML =
+          '<div class="event-row">' +
+            '<span class="event-action">' + ev.action + '</span>' +
+            '<span class="event-time">' + ev.time + '</span>' +
+          '</div>' +
+          '<div class="event-detail">' + ev.detail + '</div>' +
+          '<span class="event-status ' + statusClass + '">' + ev.status + '</span>';
+        bodyDiv.appendChild(evEl);
+      });
+    } else {
+      bodyDiv.innerHTML = '<div class="agent-empty">Not active on this step</div>';
+    }
+
+    card.appendChild(bodyDiv);
+    body.appendChild(card);
+  });
+}
+
+function setOutcome(outcome) {
+  currentOutcome = outcome;
+  const buttons = document.querySelectorAll('.outcome-btn');
+  buttons.forEach(b => b.classList.remove('active', 'approve', 'conditional', 'reject'));
+
+  const contentDiv = document.getElementById('outcomeContent');
+  if (!contentDiv) return;
+
+  let html = '';
+
+  if (outcome === 'approve') {
+    buttons[0].classList.add('active', 'approve');
+    html = `
+      <div class="decision-tile">
+        <div class="decision-label">Approval Outcome</div>
+        <div class="decision-outcome">✓ Clean Approve</div>
+        <div class="decision-reason">Sanctioned at recommended terms · no conditions attached · proceed to offer</div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">Sanction Details</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Sanctioned Amount</span><span class="v">₹ 15,00,000</span></div>
+          <div class="summary-row"><span class="k">Interest Rate</span><span class="v">15.25% p.a.</span></div>
+          <div class="summary-row"><span class="k">Tenure</span><span class="v">36 months</span></div>
+          <div class="summary-row"><span class="k">Processing Fee</span><span class="v">₹ 21,240 (incl GST)</span></div>
+          <div class="summary-row"><span class="k">Approver</span><span class="v">Vikram S. · BCM · L2</span></div>
+          <div class="summary-row"><span class="k">Approval Date</span><span class="v">23-Apr-2026 · 14:12 IST</span></div>
+          <div class="summary-row"><span class="k">Sanction Validity</span><span class="v">30 days</span></div>
+        </div>
+      </div>
+      <div class="success-banner">
+        <strong>Next Step:</strong> Applicant proceeds to sanction letter review and offer acceptance. No conditions to fulfill.
+      </div>
+    `;
+  } else if (outcome === 'conditional') {
+    buttons[1].classList.add('active', 'conditional');
+    html = `
+      <div class="decision-tile refer">
+        <div class="decision-label">Approval Outcome</div>
+        <div class="decision-outcome">⚠ Approve with Conditions</div>
+        <div class="decision-reason">Sanctioned at recommended terms · 4 conditions must be fulfilled before disbursal</div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">Sanction Details</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Sanctioned Amount</span><span class="v">₹ 15,00,000</span></div>
+          <div class="summary-row"><span class="k">Interest Rate</span><span class="v">15.25% p.a.</span></div>
+          <div class="summary-row"><span class="k">Tenure</span><span class="v">36 months</span></div>
+          <div class="summary-row"><span class="k">Processing Fee</span><span class="v">₹ 21,240 (incl GST)</span></div>
+          <div class="summary-row"><span class="k">Approver</span><span class="v">Vikram S. · BCM · L2</span></div>
+          <div class="summary-row"><span class="k">Approval Date</span><span class="v">23-Apr-2026 · 14:12 IST</span></div>
+          <div class="summary-row"><span class="k">Conditions Attached</span><span class="v" style="color:#f39c12">4 (all deadlined 28-Apr)</span></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">Approval Conditions</div>
+        <div class="condition-row">
+          <div class="condition-num">1</div>
+          <div class="condition-text">Personal Guarantee from Suresh Sharma (Father)
+            <div class="condition-meta">Deadline: 28-Apr · Status: Pending signature</div>
+          </div>
+        </div>
+        <div class="condition-row">
+          <div class="condition-num">2</div>
+          <div class="condition-text">3 Post-Dated Cheques as security (1 EMI each)
+            <div class="condition-meta">Deadline: 28-Apr · Status: Pending collection</div>
+          </div>
+        </div>
+        <div class="condition-row">
+          <div class="condition-num">3</div>
+          <div class="condition-text">eNACH Mandate Registration on HDFC primary account
+            <div class="condition-meta">Deadline: 28-Apr · Status: Pending applicant auth</div>
+          </div>
+        </div>
+        <div class="condition-row">
+          <div class="condition-num">4</div>
+          <div class="condition-text">Updated Q4 FY26 GST return filed
+            <div class="condition-meta">Deadline: 28-Apr · Status: ✓ Verified with GSTN</div>
+          </div>
+        </div>
+      </div>
+      <div class="warn-banner">
+        <strong>Next Step:</strong> Case moves to PSV (Post-Sanction Validations) for condition fulfillment tracking. Disbursal blocked until all 4 conditions fulfilled.
+      </div>
+    `;
+  } else if (outcome === 'reject') {
+    buttons[2].classList.add('active', 'reject');
+    html = `
+      <div class="decision-tile reject">
+        <div class="decision-label">Approval Outcome</div>
+        <div class="decision-outcome">✗ Rejected</div>
+        <div class="decision-reason">Decisioned at L2 BCM · applicant does not meet policy thresholds in current form</div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">Rejection Details</div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Decisioned By</span><span class="v">Vikram S. · BCM · L2</span></div>
+          <div class="summary-row"><span class="k">Decision Date</span><span class="v">23-Apr-2026 · 14:12 IST</span></div>
+          <div class="summary-row"><span class="k">Primary Reason</span><span class="v" style="color:#e74c3c">ITR vs Declared Income variance too high</span></div>
+          <div class="summary-row"><span class="k">Contributing Factor</span><span class="v">Bank bounce in last 12 months</span></div>
+        </div>
+      </div>
+      <div class="form-section">
+        <div class="section-label credit">Cooling-off &amp; Next Steps</div>
+        <div class="danger-banner">
+          <strong>Applicant Notification:</strong> Applicant will receive a regulatory-compliant rejection letter explaining the decision and options to reapply (mandatory 6-month cooling-off period as per internal policy).
+        </div>
+        <div class="summary-list">
+          <div class="summary-row"><span class="k">Appeal Mechanism</span><span class="v">Applicant may request one re-review within 30 days</span></div>
+          <div class="summary-row"><span class="k">Reapply Eligible After</span><span class="v">6 months (improved ITR + 12m clean bank history)</span></div>
+          <div class="summary-row"><span class="k">Bureau Reporting</span><span class="v">Not reported (enquiry only, not adverse)</span></div>
+        </div>
+      </div>
+    `;
+  }
+
+  contentDiv.innerHTML = html;
+}
+
+function nextStep() {
+  if (currentStep < 15) {
+    currentStep++;
+    renderStep();
+  } else {
+    if (confirm('Start a new loan application? (Resets demo to Step 1)')) {
+      currentStep = 1;
+      renderStep();
+    }
+  }
+}
+
+function prevStep() {
+  if (currentStep > 1) {
+    currentStep--;
+    renderStep();
+  }
+}
+
+function goToStep(n) {
+  if (n >= 1 && n <= 15) {
+    currentStep = n;
+    renderStep();
+  }
+}
+
+function saveExit() {
+  alert('Draft saved!\n\nApplicant can resume from Step ' + currentStep + ' later via SMS link.');
+}
+
+renderStep();
+</script>
+
+</body>
+</html>
