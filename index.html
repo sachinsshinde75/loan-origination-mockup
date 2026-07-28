@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Loan Origination Platform · Prototype Suite</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --navy: #2c3e50;
+    --navy-light: #34495e;
+    --blue: #3498db;
+    --blue-dark: #2980b9;
+    --saffron: #d4841c;
+    --saffron-light: #f39c12;
+    --gray-100: #f7f9fb;
+    --gray-200: #eef1f4;
+    --gray-300: #dce1e5;
+    --gray-500: #7f8c8d;
+    --gray-700: #34495e;
+    --gray-900: #2c3e50;
+    --green: #27ae60;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--gray-200);
+    color: var(--gray-900);
+    font-size: 15px;
+    line-height: 1.55;
+    min-height: 100vh;
+  }
+
+  /* Top bar */
+  .topbar {
+    background: var(--navy);
+    color: white;
+    padding: 12px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 3px solid var(--blue);
+  }
+  .brand-title { font-size: 16px; font-weight: 600; }
+  .brand-sub { font-size: 11px; font-weight: 400; opacity: 0.7; margin-left: 8px; }
+  .visitor-note { font-size: 11px; opacity: 0.7; }
+
+  /* Hero */
+  .hero {
+    background: linear-gradient(135deg, var(--navy) 0%, var(--navy-light) 100%);
+    color: white;
+    padding: 60px 24px 80px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -50px; right: -50px;
+    width: 300px; height: 300px;
+    background: radial-gradient(circle, rgba(52,152,219,0.25) 0%, transparent 60%);
+    border-radius: 50%;
+  }
+  .hero::after {
+    content: '';
+    position: absolute;
+    bottom: -80px; left: -80px;
+    width: 260px; height: 260px;
+    background: radial-gradient(circle, rgba(212,132,28,0.2) 0%, transparent 60%);
+    border-radius: 50%;
+  }
+  .hero-inner {
+    max-width: 780px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: rgba(255,255,255,0.15);
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: 40px;
+    line-height: 1.15;
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+  .hero .highlight-blue { color: #7fb8e0; }
+  .hero .highlight-saffron { color: #f5b76e; font-family: 'Georgia', serif; }
+  .hero p {
+    font-size: 17px;
+    opacity: 0.85;
+    max-width: 620px;
+    margin: 0 auto 24px;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 32px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    font-size: 12px;
+    opacity: 0.8;
+  }
+  .hero-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .hero-meta-item::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--saffron-light);
+    border-radius: 50%;
+  }
+
+  /* Container */
+  .container {
+    max-width: 1160px;
+    margin: -40px auto 60px;
+    padding: 0 24px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* Prototype cards */
+  .prototype-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 60px;
+  }
+
+  .prototype-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 8px 32px rgba(44, 62, 80, 0.12);
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .prototype-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(44, 62, 80, 0.18);
+  }
+
+  .card-preview {
+    height: 180px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .card-preview-loanflow {
+    background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+  }
+  .card-preview-praman {
+    background: linear-gradient(135deg, #2c3e50 0%, #d4841c 100%);
+  }
+  .preview-visual {
+    color: white;
+    text-align: center;
+    padding: 20px;
+  }
+  .preview-visual .icon {
+    font-size: 44px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .preview-visual .visual-title {
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+  .preview-visual .visual-sub {
+    font-size: 12px;
+    opacity: 0.85;
+    letter-spacing: 0.5px;
+  }
+  .preview-visual .praman-brand { font-family: 'Georgia', serif; }
+  .card-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    backdrop-filter: blur(6px);
+  }
+
+  .card-body {
+    padding: 24px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+  .card-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 6px;
+    gap: 12px;
+  }
+  .card-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--navy);
+    letter-spacing: -0.3px;
+  }
+  .card-title .sanskrit {
+    font-family: 'Georgia', serif;
+    color: var(--saffron);
+  }
+  .card-scope {
+    font-size: 10px;
+    background: var(--gray-100);
+    color: var(--gray-500);
+    padding: 3px 8px;
+    border-radius: 3px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+    white-space: nowrap;
+    text-transform: uppercase;
+    align-self: flex-start;
+    margin-top: 6px;
+  }
+  .card-tagline {
+    color: var(--gray-500);
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  .card-description {
+    color: var(--gray-700);
+    font-size: 13px;
+    margin-bottom: 18px;
+    flex: 1;
+  }
+  .card-features {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-bottom: 20px;
+  }
+  .feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--gray-700);
+  }
+  .feature::before {
+    content: '✓';
+    color: var(--green);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .card-cta-row {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+  }
+  .btn {
+    padding: 10px 18px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    cursor: pointer;
+    border: none;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-primary-blue {
+    background: var(--blue);
+    color: white;
+    flex: 1;
+  }
+  .btn-primary-blue:hover { background: var(--blue-dark); }
+  .btn-primary-saffron {
+    background: var(--saffron);
+    color: white;
+    flex: 1;
+  }
+  .btn-primary-saffron:hover { background: #a06214; }
+
+  /* Explanation section */
+  .explanation {
+    background: white;
+    border-radius: 10px;
+    padding: 32px 40px;
+    box-shadow: 0 4px 16px rgba(44, 62, 80, 0.08);
+    margin-bottom: 40px;
+  }
+  .explanation h2 {
+    font-size: 22px;
+    color: var(--navy);
+    margin-bottom: 20px;
+    letter-spacing: -0.3px;
+  }
+  .explain-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  .explain-block h3 {
+    font-size: 13px;
+    color: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 10px;
+    font-weight: 700;
+  }
+  .explain-block p {
+    font-size: 13px;
+    color: var(--gray-700);
+    line-height: 1.6;
+  }
+
+  /* Footer note */
+  .footer {
+    text-align: center;
+    padding: 24px;
+    color: var(--gray-500);
+    font-size: 12px;
+  }
+  .footer strong { color: var(--gray-700); }
+
+  /* Responsive */
+  @media (max-width: 800px) {
+    .prototype-grid { grid-template-columns: 1fr; }
+    .explain-grid { grid-template-columns: 1fr; }
+    .hero h1 { font-size: 30px; }
+    .hero p { font-size: 15px; }
+    .hero-meta { gap: 16px; }
+    .explanation { padding: 24px 20px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <span class="brand-title">Loan Origination Platform</span>
+    <span class="brand-sub">Prototype Suite for NBFCs · India</span>
+  </div>
+  <div class="visitor-note">Interactive · Sample data only · No real applicants</div>
+</div>
+
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-badge">Interactive Prototypes</span>
+    <h1>
+      <span class="highlight-blue">LoanFlow</span> and <span class="highlight-saffron">Praman</span><br/>
+      One platform. Two surfaces. Real AI where it belongs.
+    </h1>
+    <p>Explore two clickable prototypes for a modern NBFC building unsecured business term loans in India — an end-to-end origination journey and an AI-native bank statement analyser.</p>
+    <div class="hero-meta">
+      <div class="hero-meta-item">Sales Officer + Borrower flows</div>
+      <div class="hero-meta-item">RBI &amp; DPDP compliant patterns</div>
+      <div class="hero-meta-item">Services vs Agents architecture</div>
+      <div class="hero-meta-item">India-hosted design</div>
+    </div>
+  </div>
+</section>
+
+<div class="container">
+
+  <div class="prototype-grid">
+
+    <!-- LoanFlow card -->
+    <div class="prototype-card">
+      <div class="card-preview card-preview-loanflow">
+        <span class="card-badge">FULL JOURNEY</span>
+        <div class="preview-visual">
+          <span class="icon">📋</span>
+          <div class="visual-title">LoanFlow</div>
+          <div class="visual-sub">15 STEPS · SALES + CREDIT</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-title-row">
+          <div>
+            <div class="card-title">LoanFlow</div>
+            <div class="card-tagline">The end-to-end loan origination journey</div>
+          </div>
+          <span class="card-scope">Full LOS</span>
+        </div>
+        <div class="card-description">
+          Walk through a complete sales-officer-assisted business loan application — from Basic Intake through KYC, participants, and consent, into Credit Underwriting with CAM, approval workflow, sanction, and offers.
+        </div>
+        <div class="card-features">
+          <div class="feature">15 clickable screens across Sales Capture &amp; Credit Underwriting</div>
+          <div class="feature">Multi-agent activity panel (6 services + 4 agents)</div>
+          <div class="feature">Approval workflow with Clean / Conditional / Reject outcomes</div>
+          <div class="feature">Co-applicant &amp; guarantor participant model</div>
+        </div>
+        <div class="card-cta-row">
+          <a href="loanflow/" class="btn btn-primary-blue">Explore LoanFlow →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Praman card -->
+    <div class="prototype-card">
+      <div class="card-preview card-preview-praman">
+        <span class="card-badge">AI-NATIVE</span>
+        <div class="preview-visual">
+          <span class="icon">📄</span>
+          <div class="visual-title praman-brand">Praman · प्रमाण</div>
+          <div class="visual-sub">3 SCREENS · UNDERWRITING</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="card-title-row">
+          <div>
+            <div class="card-title"><span class="sanskrit">Praman</span></div>
+            <div class="card-tagline">The proof layer for business lending</div>
+          </div>
+          <span class="card-scope">AI Core</span>
+        </div>
+        <div class="card-description">
+          Upload a bank statement. Praman reads 12 months of transactions, reconciles against declared numbers, and returns a lending-ready credit assessment in ~15 seconds — work that takes a manual analyst 30-60 minutes.
+        </div>
+        <div class="card-features">
+          <div class="feature">Document Understanding Agent parses varying statement formats</div>
+          <div class="feature">Data Reconciliation Agent explains variance across sources</div>
+          <div class="feature">Deterministic BRE for policy rules (audit-friendly)</div>
+          <div class="feature">Analyst-quality narrative report with LLM commentary</div>
+        </div>
+        <div class="card-cta-row">
+          <a href="praman/" class="btn btn-primary-saffron">Explore Praman →</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="explanation">
+    <h2>Why two prototypes?</h2>
+    <div class="explain-grid">
+      <div class="explain-block">
+        <h3>Different Audiences</h3>
+        <p>LoanFlow answers "what does a modern lending journey look like end-to-end?" — useful for ops leaders, sales teams, and business partners understanding the full scope. Praman answers "where does AI actually add unique value?" — useful for investors, technical hires, and NBFCs evaluating our underwriting engine as a standalone tool.</p>
+      </div>
+      <div class="explain-block">
+        <h3>Honest Architecture</h3>
+        <p>Not everything needs to be an "AI agent" — most of a lending system is deterministic software (BRE rules, API calls, workflow state machines). Agents matter only where LLM judgment adds real value: parsing unstructured documents, explaining variance, writing narrative. Both prototypes label services and agents clearly, no marketing overreach.</p>
+      </div>
+      <div class="explain-block">
+        <h3>One Platform Underneath</h3>
+        <p>Under the hood, LoanFlow and Praman share the same modular monolith backend, the same database, the same design language. Praman can run standalone as a B2B tool sold to other NBFCs, or embed inside LoanFlow's Step 9 (Bank Statement analysis). Same code, two surfaces.</p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  Built as an interactive prototype suite · Sample data only · <strong>No real applicant PII</strong>
+</div>
+
+</body>
+</html>
